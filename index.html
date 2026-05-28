@@ -3,268 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EQ Ear Trainer • Pro</title>
+    <title>EQ Ear Trainer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         body { font-family: 'Inter', system_ui, sans-serif; }
         .font-display { font-family: 'Space Grotesk', 'Inter', sans-serif; font-weight: 600; }
-        .eq-slider { writing-mode: vertical-lr; direction: rtl; height: 155px; accent-color: #22c55e; }
+        .eq-slider { writing-mode: vertical-lr; direction: rtl; height: 160px; accent-color: #22c55e; }
         .band-bar { transition: height 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
-        .audio-btn { transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1); }
-        .guess-btn { transition: all 0.2s ease; }
-        .guess-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgb(16 185 129 / 0.2); }
-        .slider-container { scrollbar-width: thin; scrollbar-color: #27272a #18181b; }
     </style>
 </head>
 <body class="bg-zinc-950 text-zinc-200">
-    <nav class="border-b border-zinc-800 bg-zinc-950/90 backdrop-blur-lg sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+    <nav class="border-b border-zinc-800 bg-zinc-950/90 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
             <div class="flex items-center gap-x-3">
-                <div class="w-10 h-10 bg-emerald-500 rounded-2xl flex items-center justify-center">
-                    <i class="fa-solid fa-headset text-white text-3xl"></i>
+                <div class="w-9 h-9 bg-emerald-500 rounded-2xl flex items-center justify-center">
+                    <i class="fa-solid fa-headset text-white"></i>
                 </div>
-                <div>
-                    <span class="font-display text-2xl font-semibold tracking-tighter">EQ Ear</span>
-                    <span class="font-display text-2xl font-semibold tracking-tighter text-emerald-400">Trainer</span>
-                </div>
+                <span class="font-display text-2xl font-semibold tracking-tighter">EQ Ear Trainer</span>
             </div>
-            <div class="flex items-center gap-x-6 text-sm">
-                <a href="#frequency-id" class="hover:text-emerald-400 px-3 py-1.5">ID Game</a>
-                <a href="#eq-match" class="hover:text-emerald-400 px-3 py-1.5">EQ Match</a>
-                <a href="https://github.com/idle-hanz/eq-ear-trainer" target="_blank" class="flex items-center gap-x-2 text-zinc-400 hover:text-white">
-                    <i class="fa-brands fa-github"></i> <span class="hidden sm:inline">GitHub</span>
-                </a>
-            </div>
+            <a href="https://github.com/idle-hanz/eq-ear-trainer" target="_blank" class="text-sm text-zinc-400 hover:text-white">GitHub</a>
         </div>
     </nav>
 
-    <div class="max-w-5xl mx-auto px-6 pt-14 pb-8 text-center">
-        <div class="inline-flex items-center gap-x-2 px-4 py-1 rounded-3xl bg-zinc-900 border border-zinc-800 mb-5">
-            <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-            <span class="text-xs font-medium tracking-[1.5px] text-emerald-400">PRO • 14 BANDS + UPLOAD</span>
-        </div>
-        
-        <h1 class="text-6xl md:text-7xl font-display font-semibold tracking-tighter leading-none mb-4">
-            Hear exactly.<br>
-            <span class="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Train precisely.</span>
-        </h1>
-        <p class="max-w-md mx-auto text-lg text-zinc-400">14 precise frequency points • Upload your tracks • Real parametric EQ</p>
+    <div class="max-w-4xl mx-auto px-6 pt-12 pb-8 text-center">
+        <h1 class="text-6xl font-display font-semibold tracking-tighter mb-4">Train your ears.<br><span class="text-emerald-400">Master EQ.</span></h1>
+        <p class="text-xl text-zinc-400">Interactive ear training for audio equalization using real Web Audio API.</p>
     </div>
 
-    <div class="max-w-5xl mx-auto px-6 mb-10">
-        <div class="bg-zinc-900 border border-zinc-800 rounded-3xl px-5 py-3 flex items-center justify-between text-sm">
-            <div class="flex items-center gap-x-8">
-                <div class="flex items-center gap-x-2">
-                    <span class="text-emerald-400 font-mono text-xl" id="global-streak">0</span>
-                    <span class="text-xs text-zinc-500">day streak</span>
+    <!-- Frequency ID -->
+    <div class="max-w-4xl mx-auto px-6 pb-16">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <div class="text-emerald-400 text-sm font-medium">FREQUENCY IDENTIFICATION</div>
+                    <div class="text-3xl font-semibold">Which band was boosted?</div>
                 </div>
-                <div class="h-3 w-px bg-zinc-800"></div>
-                <div><span class="font-semibold" id="global-accuracy">--</span> <span class="text-xs text-zinc-500">avg accuracy</span></div>
-            </div>
-            <div class="text-xs text-zinc-500 hidden sm:block">Headphones recommended • Progress saved</div>
-        </div>
-    </div>
-
-    <!-- FREQUENCY ID GAME -->
-    <div id="frequency-id" class="max-w-6xl mx-auto px-6 pb-16">
-        <div class="flex items-end justify-between mb-5">
-            <div>
-                <div class="flex items-center gap-x-3">
-                    <div class="w-8 h-8 bg-emerald-500/10 text-emerald-400 rounded-2xl flex items-center justify-center">
-                        <i class="fa-solid fa-waveform-lines"></i>
-                    </div>
-                    <h2 class="text-4xl font-display font-semibold tracking-tight">Frequency Identification</h2>
-                </div>
-                <p class="text-zinc-400 mt-1 text-sm">A random frequency band is boosted in noise. Identify which one.</p>
-            </div>
-            <div class="text-xs px-3 py-1 bg-zinc-900 rounded-2xl border border-zinc-800 hidden md:block">
-                14 bands • +9 to +16 dB boost
-            </div>
-        </div>
-
-        <div class="grid lg:grid-cols-12 gap-6">
-            <div class="lg:col-span-4 bg-zinc-900 border border-zinc-800 rounded-3xl p-7 flex flex-col">
-                <div class="mb-auto">
-                    <div class="text-xs uppercase tracking-widest text-emerald-400 mb-1">ROUND</div>
-                    <div class="flex items-baseline">
-                        <span class="text-6xl font-display tabular-nums" id="id-round">01</span>
-                        <span class="text-zinc-500 ml-1">/ 15</span>
-                    </div>
-                    <div class="mt-6">
-                        <div class="flex justify-between text-xs mb-1">
-                            <span class="text-zinc-400">Streak</span>
-                            <span class="font-mono text-emerald-400" id="id-streak">0</span>
-                        </div>
-                        <div class="h-1.5 bg-zinc-800 rounded-full overflow-hidden">
-                            <div id="id-streak-bar" class="h-1.5 bg-emerald-500 transition-all" style="width:0%"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="mt-8 space-y-3">
-                    <button onclick="startIDRound()" class="audio-btn w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-3xl flex items-center justify-center gap-x-3 text-base shadow-lg shadow-emerald-500/30">
-                        <i class="fa-solid fa-play"></i>
-                        <span id="play-id-text">PLAY REFERENCE</span>
-                    </button>
-                    <button onclick="resetIDGame()" class="w-full py-2.5 text-xs border border-zinc-700 hover:bg-zinc-800 rounded-3xl flex items-center justify-center gap-x-2">
-                        <i class="fa-solid fa-redo"></i> <span>Reset Session</span>
-                    </button>
-                </div>
+                <button onclick="startIDRound()" class="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-3xl flex items-center gap-x-2">
+                    <i class="fa-solid fa-play"></i> <span>PLAY</span>
+                </button>
             </div>
 
-            <div class="lg:col-span-8 bg-zinc-900 border border-zinc-800 rounded-3xl p-7">
-                <div class="text-xs uppercase tracking-widest text-emerald-400 mb-4">WHICH FREQUENCY WAS BOOSTED?</div>
-                <div id="guess-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-2.5">
-                    <!-- JS populated -->
-                </div>
-                <div id="id-feedback" class="mt-5 hidden p-4 rounded-2xl text-sm border"></div>
+            <div id="guess-buttons" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-6">
+                <!-- Populated by JS -->
             </div>
+
+            <div id="id-feedback" class="hidden p-4 rounded-2xl text-sm"></div>
         </div>
     </div>
 
-    <!-- EQ MATCHING -->
-    <div id="eq-match" class="max-w-6xl mx-auto px-6 pb-20">
-        <div class="flex items-end justify-between mb-5">
-            <div>
-                <div class="flex items-center gap-x-3">
-                    <div class="w-8 h-8 bg-violet-500/10 text-violet-400 rounded-2xl flex items-center justify-center">
-                        <i class="fa-solid fa-sliders-h"></i>
-                    </div>
-                    <h2 class="text-4xl font-display font-semibold tracking-tight">EQ Matching Challenge</h2>
+    <!-- EQ Matching -->
+    <div class="max-w-4xl mx-auto px-6 pb-20">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <div class="text-violet-400 text-sm font-medium">EQ MATCHING</div>
+                    <div class="text-3xl font-semibold">Match the hidden EQ</div>
                 </div>
-                <p class="text-zinc-400 mt-1 text-sm">Match the hidden target using noise or your own audio.</p>
-            </div>
-
-            <div class="flex items-center gap-x-3">
-                <div class="flex items-center bg-zinc-900 border border-zinc-800 rounded-3xl px-1 py-1 text-xs">
-                    <button onclick="setAudioSource('noise')" id="btn-noise" class="px-4 py-1.5 rounded-[20px] bg-emerald-500 text-white font-medium flex items-center gap-x-1.5">
-                        <i class="fa-solid fa-waveform-lines"></i> <span>Noise</span>
-                    </button>
-                    <button onclick="setAudioSource('upload')" id="btn-upload" class="px-4 py-1.5 rounded-[20px] text-zinc-300 hover:bg-zinc-800 flex items-center gap-x-1.5">
-                        <i class="fa-solid fa-upload"></i> <span>Upload</span>
-                    </button>
-                </div>
-                <div id="upload-status" class="text-xs px-3 py-1 bg-zinc-900 border border-zinc-800 rounded-3xl hidden items-center gap-x-2">
-                    <span id="upload-filename" class="font-mono text-emerald-400 max-w-[120px] truncate"></span>
-                    <button onclick="clearUploadedAudio()" class="text-rose-400 hover:text-rose-300"><i class="fa-solid fa-times"></i></button>
-                </div>
-            </div>
-        </div>
-
-        <div class="grid lg:grid-cols-12 gap-6">
-            <div class="lg:col-span-5 bg-zinc-900 border border-zinc-800 rounded-3xl p-7">
-                <div class="flex justify-between items-start mb-5">
-                    <div>
-                        <div class="text-xs text-violet-400">HIDDEN TARGET</div>
-                        <div class="font-semibold">Reference EQ</div>
-                    </div>
-                    <button onclick="playReference()" class="audio-btn px-5 py-2 bg-violet-600 hover:bg-violet-500 text-white text-xs font-semibold rounded-3xl flex items-center gap-x-2">
+                <div class="flex gap-x-3">
+                    <button onclick="randomizeTarget()" class="px-5 py-3 border border-zinc-700 hover:bg-zinc-800 rounded-3xl text-sm">New Target</button>
+                    <button onclick="playReference()" class="px-5 py-3 bg-violet-600 hover:bg-violet-500 text-white font-semibold rounded-3xl flex items-center gap-x-2">
                         <i class="fa-solid fa-play"></i> <span>PLAY</span>
                     </button>
                 </div>
-
-                <div class="h-px bg-zinc-800 my-4"></div>
-
-                <div class="text-center py-6">
-                    <div class="mx-auto w-14 h-14 bg-zinc-800 rounded-full flex items-center justify-center mb-3">
-                        <i class="fa-solid fa-lock text-2xl text-zinc-600"></i>
-                    </div>
-                    <p class="text-xs text-zinc-500">Adjust sliders to match the hidden curve by ear.</p>
-                </div>
-
-                <div class="mt-4">
-                    <div class="flex items-center justify-between text-xs mb-1">
-                        <span class="text-zinc-400">Difficulty</span>
-                        <select id="match-difficulty" onchange="applyDifficulty()" class="bg-zinc-800 border border-zinc-700 text-xs rounded-xl px-2 py-1">
-                            <option value="easy">Easy (−5 to +5 dB)</option>
-                            <option value="medium" selected>Medium (−8 to +8 dB)</option>
-                            <option value="hard">Hard (−12 to +12 dB)</option>
-                        </select>
-                    </div>
-                </div>
             </div>
 
-            <div class="lg:col-span-7 bg-zinc-900 border border-zinc-800 rounded-3xl p-7">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="font-semibold">Your EQ</div>
-                    <div class="flex gap-x-2">
-                        <button onclick="playUserEQ()" class="audio-btn px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-xs font-semibold rounded-3xl flex items-center gap-x-2">
-                            <i class="fa-solid fa-play"></i> <span>PLAY YOURS</span>
-                        </button>
-                        <button onclick="randomizeTarget()" class="px-3 py-1.5 text-xs border border-zinc-700 hover:bg-zinc-800 rounded-3xl flex items-center gap-x-1.5">
-                            <i class="fa-solid fa-sync"></i> <span>New Target</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div id="sliders-row" class="flex gap-3 overflow-x-auto pb-3 slider-container snap-x">
-                    <!-- JS populated -->
-                </div>
-
-                <div class="mt-6 flex gap-3">
-                    <button onclick="submitMatch()" class="flex-1 py-3.5 bg-white text-zinc-950 font-semibold rounded-3xl text-sm flex items-center justify-center gap-x-2 hover:bg-zinc-100">
-                        <i class="fa-solid fa-check-double"></i> <span>SUBMIT & SCORE</span>
-                    </button>
-                    <button onclick="showTargetBreakdown()" class="px-5 py-3.5 border border-zinc-700 hover:bg-zinc-800 rounded-3xl text-xs flex items-center gap-x-2">
-                        <i class="fa-solid fa-chart-bar"></i> <span>Reveal Target</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div id="match-result" class="hidden mt-6 bg-zinc-900 border border-zinc-800 rounded-3xl p-6">
-            <div class="flex justify-between items-start">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Reference -->
                 <div>
-                    <div class="text-xs text-zinc-500">ACCURACY</div>
-                    <div class="flex items-baseline">
-                        <span id="match-accuracy" class="text-6xl font-display font-semibold text-emerald-400">92</span>
-                        <span class="text-3xl text-zinc-500">%</span>
+                    <div class="text-sm text-zinc-400 mb-2">REFERENCE (HIDDEN)</div>
+                    <div class="h-40 bg-zinc-800 rounded-2xl flex items-center justify-center">
+                        <div class="text-center">
+                            <i class="fa-solid fa-lock text-4xl text-zinc-600 mb-2"></i>
+                            <div class="text-xs text-zinc-500">Target is hidden</div>
+                        </div>
                     </div>
                 </div>
-                <div id="match-feedback" class="text-right text-sm max-w-[220px]"></div>
+
+                <!-- Your EQ -->
+                <div>
+                    <div class="text-sm text-emerald-400 mb-2">YOUR EQ</div>
+                    <div id="sliders" class="space-y-4">
+                        <!-- Populated by JS -->
+                    </div>
+                    <button onclick="playUserEQ()" class="mt-4 w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-3xl flex items-center justify-center gap-x-2">
+                        <i class="fa-solid fa-play"></i> <span>PLAY YOUR EQ</span>
+                    </button>
+                </div>
             </div>
-            <div class="mt-3 h-2 bg-zinc-800 rounded-full overflow-hidden">
-                <div id="match-bar" class="h-2 bg-gradient-to-r from-emerald-500 to-teal-400 transition-all" style="width:92%"></div>
+
+            <button onclick="submitMatch()" class="mt-8 w-full py-4 bg-white text-zinc-950 font-semibold rounded-3xl text-lg">
+                SUBMIT MATCH
+            </button>
+
+            <div id="match-result" class="hidden mt-6 p-4 bg-zinc-800 rounded-2xl text-center">
+                <div class="text-4xl font-display font-semibold text-emerald-400" id="match-accuracy">87</div>
+                <div class="text-sm text-zinc-400">% Accuracy</div>
             </div>
-            <div id="band-errors" class="mt-4 text-xs grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1 text-zinc-400"></div>
         </div>
     </div>
-
-    <footer class="border-t border-zinc-800 py-10">
-        <div class="max-w-5xl mx-auto px-6 text-center text-xs text-zinc-500">
-            Built with Grok • 14-band training • Upload your own audio<br>
-            <span class="text-emerald-400">Train daily → Better mixes in days</span>
-        </div>
-    </footer>
 
     <script>
         let audioContext;
         let noiseBuffer;
-        let uploadedBuffer = null;
-        let currentAudioSource = 'noise';
         let currentSource = null;
-        let isPlaying = false;
 
         const bands = [
-            { name: "80 Hz", short: "80", role: "Sub / Low Bass", color: "#ef4444" },
-            { name: "100 Hz", short: "100", role: "Bass Punch", color: "#f97316" },
-            { name: "160 Hz", short: "160", role: "Upper Bass", color: "#fb923c" },
-            { name: "315 Hz", short: "315", role: "Low-Mid", color: "#eab308" },
-            { name: "500 Hz", short: "500", role: "Boxy / Mud", color: "#84cc16" },
-            { name: "800 Hz", short: "800", role: "Low-Mid Body", color: "#22c55e" },
-            { name: "1 kHz", short: "1k", role: "Presence", color: "#10b981" },
-            { name: "2 kHz", short: "2k", role: "Attack / Clarity", color: "#14b8a6" },
-            { name: "4 kHz", short: "4k", role: "Sibilance", color: "#06b6d4" },
-            { name: "5 kHz", short: "5k", role: "Brightness", color: "#3b82f6" },
-            { name: "6 kHz", short: "6k", role: "Air", color: "#6366f1" },
-            { name: "8 kHz", short: "8k", role: "Detail / Highs", color: "#a855f7" },
-            { name: "10 kHz", short: "10k", role: "Sheen / Air", color: "#c026ff" },
-            { name: "15 kHz", short: "15k", role: "Ultra Air", color: "#e879f9" }
+            { name: "Sub Bass", freq: 40, color: "#ef4444" },
+            { name: "Bass", freq: 120, color: "#f97316" },
+            { name: "Low Mids", freq: 300, color: "#eab308" },
+            { name: "Mids", freq: 700, color: "#22c55e" },
+            { name: "Upper Mids", freq: 1500, color: "#3b82f6" },
+            { name: "Presence", freq: 3500, color: "#a855f7" },
+            { name: "Highs", freq: 8000, color: "#ec4899" }
         ];
 
-        let idState = { currentRound: 0, correct: 0, streak: 0, targetIndex: null, totalGuesses: 0 };
-        let matchState = { targetGains: [], userGains: [], hasTarget: false, difficulty: 'medium' };
+        let idTarget = null;
+        let matchTarget = [];
+        let userGains = [0,0,0,0,0,0,0];
 
         function initAudio() {
             if (audioContext) return;
@@ -273,386 +129,176 @@
         }
 
         function createNoiseBuffer() {
-            const sr = audioContext.sampleRate || 44100;
-            const bufferSize = Math.floor(sr * 5);
-            const buffer = audioContext.createBuffer(1, bufferSize, sr);
-            const output = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) {
-                output[i] = Math.random() * 2 - 1;
-            }
+            const bufferSize = audioContext.sampleRate * 4;
+            const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
             return buffer;
         }
 
-        function stopCurrent() {
-            if (currentSource) { try { currentSource.stop(); } catch(e){} currentSource = null; }
-            isPlaying = false;
-        }
-
-        function playWithEQ(gains, duration = 3.8, customBuffer = null) {
+        function playWithEQ(gains) {
             if (!audioContext) initAudio();
-            if (isPlaying) stopCurrent();
+            if (currentSource) { try { currentSource.stop(); } catch(e){} }
 
             const source = audioContext.createBufferSource();
-            source.buffer = customBuffer || noiseBuffer;
+            source.buffer = noiseBuffer;
 
             let node = source;
 
             const hp = audioContext.createBiquadFilter();
-            hp.type = 'highpass';
-            hp.frequency.value = 25;
-            node.connect(hp);
-            node = hp;
+            hp.type = 'highpass'; hp.frequency.value = 30;
+            node.connect(hp); node = hp;
 
             const lp = audioContext.createBiquadFilter();
-            lp.type = 'lowpass';
-            lp.frequency.value = 18000;
-            node.connect(lp);
-            node = lp;
+            lp.type = 'lowpass'; lp.frequency.value = 12000;
+            node.connect(lp); node = lp;
 
             bands.forEach((band, i) => {
                 const f = audioContext.createBiquadFilter();
                 f.type = 'peaking';
                 f.frequency.value = band.freq;
                 f.gain.value = gains[i] || 0;
-                f.Q.value = 2.1;
-                node.connect(f);
-                node = f;
+                f.Q.value = 2;
+                node.connect(f); node = f;
             });
 
             const master = audioContext.createGain();
-            master.gain.value = customBuffer ? 0.85 : 0.68;
+            master.gain.value = 0.7;
             node.connect(master);
             master.connect(audioContext.destination);
 
             source.start();
             currentSource = source;
-            isPlaying = true;
 
-            setTimeout(() => { if (currentSource === source) stopCurrent(); }, duration * 1000);
             if (audioContext.state === 'suspended') audioContext.resume();
         }
 
         function createGuessButtons() {
-            const grid = document.getElementById('guess-grid');
-            grid.innerHTML = '';
+            const container = document.getElementById('guess-buttons');
+            container.innerHTML = '';
 
             bands.forEach((band, i) => {
                 const btn = document.createElement('button');
-                btn.className = `guess-btn p-3.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 hover:border-emerald-500 rounded-2xl text-left`;
+                btn.className = `p-4 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-2xl text-left transition-all`;
                 btn.innerHTML = `
                     <div class="flex items-center gap-x-3">
-                        <div class="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center text-sm font-mono font-semibold" style="background:${band.color}22; color:${band.color}">
-                            ${band.short}
+                        <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm" style="background:${band.color}22; color:${band.color}">
+                            <i class="fa-solid fa-music"></i>
                         </div>
-                        <div class="min-w-0 flex-1">
-                            <div class="font-semibold text-sm leading-tight">${band.role}</div>
-                            <div class="text-[10px] text-zinc-500">${band.name}</div>
+                        <div>
+                            <div class="font-semibold">${band.name}</div>
+                            <div class="text-xs text-zinc-500">${band.freq} Hz</div>
                         </div>
                     </div>
                 `;
-                btn.onclick = () => makeGuess(i, btn);
-                grid.appendChild(btn);
+                btn.onclick = () => guessFrequency(i, btn);
+                container.appendChild(btn);
             });
         }
 
         function startIDRound() {
-            const txt = document.getElementById('play-id-text');
-            txt.innerHTML = 'PLAYING...';
-
-            idState.targetIndex = Math.floor(Math.random() * bands.length);
-
-            const gains = new Array(bands.length).fill(0);
-            const boost = 9 + Math.random() * 7;
-            gains[idState.targetIndex] = boost;
-
-            const useUpload = currentAudioSource === 'upload' && uploadedBuffer;
-            playWithEQ(gains, 3.8, useUpload ? uploadedBuffer : null);
-
-            setTimeout(() => {
-                txt.innerHTML = 'PLAY AGAIN';
-                document.getElementById('id-feedback').classList.add('hidden');
-            }, 4100);
+            idTarget = Math.floor(Math.random() * bands.length);
+            const gains = new Array(7).fill(0);
+            gains[idTarget] = 10 + Math.random() * 6;
+            playWithEQ(gains);
         }
 
-        function makeGuess(guessIdx, btn) {
-            if (idState.targetIndex === null) { alert('Play the reference first!'); return; }
-
-            const correct = guessIdx === idState.targetIndex;
+        function guessFrequency(index, btn) {
             const fb = document.getElementById('id-feedback');
             fb.classList.remove('hidden');
 
-            idState.currentRound++;
-            idState.totalGuesses++;
-            document.getElementById('id-round').textContent = String(idState.currentRound).padStart(2,'0');
-
-            if (correct) {
-                idState.correct++;
-                idState.streak++;
-                fb.innerHTML = `<div class="flex gap-3"><div class="text-emerald-400 text-2xl mt-0.5"><i class="fa-solid fa-check-circle"></i></div><div><div class="font-semibold text-emerald-400">Correct! ${bands[guessIdx].name} — ${bands[guessIdx].role}</div><div class="text-xs text-zinc-400">Great ear!</div></div></div>`;
+            if (index === idTarget) {
+                fb.innerHTML = `<div class="text-emerald-400 font-semibold">Correct! It was ${bands[index].name}</div>`;
+                fb.style.background = 'rgba(16,185,129,0.1)';
                 fb.style.border = '1px solid #22c55e';
-                fb.style.background = 'rgba(16,185,129,0.08)';
-
-                document.getElementById('id-streak').textContent = idState.streak;
-                updateStreakBar();
-                if (idState.streak % 3 === 0) launchConfetti();
-
-                const acc = Math.round((idState.correct / idState.totalGuesses) * 100);
-                updateGlobalStats(acc);
             } else {
-                idState.streak = 0;
-                document.getElementById('id-streak').textContent = '0';
-                updateStreakBar();
-                fb.innerHTML = `<div class="flex gap-3"><div class="text-rose-400 text-2xl mt-0.5"><i class="fa-solid fa-times-circle"></i></div><div><div class="font-semibold text-rose-400">It was ${bands[idState.targetIndex].name} (${bands[idState.targetIndex].role})</div><div class="text-xs text-zinc-400">Try again</div></div></div>`;
+                fb.innerHTML = `<div class="text-rose-400 font-semibold">Wrong. It was ${bands[idTarget].name}</div>`;
+                fb.style.background = 'rgba(244,63,94,0.1)';
                 fb.style.border = '1px solid #f43f5e';
-                fb.style.background = 'rgba(244,63,94,0.08)';
             }
 
-            const allBtns = document.querySelectorAll('#guess-grid button');
-            allBtns.forEach(b => b.disabled = true);
-            setTimeout(() => { allBtns.forEach(b => b.disabled = false); idState.targetIndex = null; }, 1500);
-
-            saveProgress();
-        }
-
-        function updateStreakBar() {
-            const pct = Math.min(idState.streak * 11, 100);
-            document.getElementById('id-streak-bar').style.width = pct + '%';
-        }
-
-        function resetIDGame() {
-            idState = { currentRound: 0, correct: 0, streak: 0, targetIndex: null, totalGuesses: 0 };
-            document.getElementById('id-round').textContent = '01';
-            document.getElementById('id-streak').textContent = '0';
-            document.getElementById('id-streak-bar').style.width = '0%';
-            document.getElementById('id-feedback').classList.add('hidden');
-            document.getElementById('play-id-text').innerHTML = 'PLAY REFERENCE';
+            setTimeout(() => {
+                fb.classList.add('hidden');
+                idTarget = null;
+            }, 1800);
         }
 
         function createSliders() {
-            const row = document.getElementById('sliders-row');
-            row.innerHTML = '';
+            const container = document.getElementById('sliders');
+            container.innerHTML = '';
 
             bands.forEach((band, i) => {
-                const col = document.createElement('div');
-                col.className = 'flex-shrink-0 w-[58px] snap-center';
-                col.innerHTML = `
-                    <div class="text-center mb-1">
-                        <div class="font-mono text-[10px] text-emerald-400">${band.short}</div>
-                        <div class="text-[8px] text-zinc-500 leading-none">${band.role.split(' / ')[0]}</div>
-                        <div class="font-mono text-xs mt-0.5" id="gain-val-${i}">0.0</div>
-                    </div>
-                    <div class="flex justify-center">
-                        <div class="relative w-5 h-[152px] bg-zinc-800 rounded-full overflow-hidden">
-                            <div id="bar-${i}" class="band-bar absolute bottom-0 left-0 right-0 rounded-full" style="height:50%; background:${band.color}"></div>
-                        </div>
-                    </div>
-                    <input type="range" id="slider-${i}" class="eq-slider w-4 mt-1 accent-emerald-500" min="-12" max="12" step="0.5" value="0" oninput="updateUserGain(${i}, this.value)">
+                const div = document.createElement('div');
+                div.className = 'flex items-center gap-x-4';
+                div.innerHTML = `
+                    <div class="w-24 text-sm">${band.name}</div>
+                    <input type="range" min="-12" max="12" step="0.5" value="0" class="flex-1 accent-emerald-500" 
+                           oninput="userGains[${i}] = parseFloat(this.value); updateSliderVisual(${i}, this.value)">
+                    <div class="w-12 text-right font-mono text-sm" id="val-${i}">0 dB</div>
                 `;
-                row.appendChild(col);
+                container.appendChild(div);
             });
-            matchState.userGains = new Array(bands.length).fill(0);
         }
 
-        function updateUserGain(i, val) {
-            matchState.userGains[i] = parseFloat(val);
-            document.getElementById(`gain-val-${i}`).textContent = (parseFloat(val) > 0 ? '+' : '') + parseFloat(val).toFixed(1);
-            const bar = document.getElementById(`bar-${i}`);
-            const pct = ((parseFloat(val) + 12) / 24) * 100;
-            bar.style.height = Math.max(6, pct) + '%';
-        }
-
-        function applyDifficulty() {
-            const diff = document.getElementById('match-difficulty').value;
-            matchState.difficulty = diff;
-            let minG = -12, maxG = 12;
-            if (diff === 'easy') { minG = -5; maxG = 5; }
-            else if (diff === 'medium') { minG = -8; maxG = 8; }
-
-            bands.forEach((_, i) => {
-                const slider = document.getElementById(`slider-${i}`);
-                if (slider) {
-                    slider.min = minG; slider.max = maxG;
-                    if (parseFloat(slider.value) < minG) slider.value = minG;
-                    if (parseFloat(slider.value) > maxG) slider.value = maxG;
-                    updateUserGain(i, slider.value);
-                }
-            });
+        function updateSliderVisual(i, val) {
+            document.getElementById(`val-${i}`).textContent = (parseFloat(val) > 0 ? '+' : '') + parseFloat(val).toFixed(1) + ' dB';
         }
 
         function randomizeTarget() {
-            const diff = matchState.difficulty || 'medium';
-            let min = -8, max = 8;
-            if (diff === 'easy') min = -5, max = 5;
-            if (diff === 'hard') min = -12, max = 12;
+            matchTarget = bands.map(() => (Math.random() * 16 - 8).toFixed(1) * 1);
+            userGains = [0,0,0,0,0,0,0];
 
-            matchState.targetGains = bands.map(() => (Math.random() * (max - min) + min).toFixed(1) * 1);
-            matchState.hasTarget = true;
-            matchState.userGains = new Array(bands.length).fill(0);
-
-            bands.forEach((_, i) => {
-                const s = document.getElementById(`slider-${i}`);
-                if (s) { s.value = 0; updateUserGain(i, 0); }
+            const inputs = document.querySelectorAll('#sliders input');
+            inputs.forEach((input, i) => {
+                input.value = 0;
+                document.getElementById(`val-${i}`).textContent = '0 dB';
             });
+
             document.getElementById('match-result').classList.add('hidden');
-            setTimeout(() => playReference(), 200);
         }
 
         function playReference() {
-            if (!matchState.hasTarget) { alert('Click New Target first'); return; }
-            const useUpload = currentAudioSource === 'upload' && uploadedBuffer;
-            playWithEQ(matchState.targetGains, 4.5, useUpload ? uploadedBuffer : null);
+            if (!matchTarget.length) {
+                alert('Click "New Target" first');
+                return;
+            }
+            playWithEQ(matchTarget);
         }
 
         function playUserEQ() {
-            const useUpload = currentAudioSource === 'upload' && uploadedBuffer;
-            playWithEQ(matchState.userGains, 4.5, useUpload ? uploadedBuffer : null);
+            playWithEQ(userGains);
         }
 
         function submitMatch() {
-            if (!matchState.hasTarget) { alert('Generate a target first'); return; }
-
-            let totalDiff = 0;
-            const errors = [];
-            for (let i = 0; i < bands.length; i++) {
-                const d = Math.abs(matchState.targetGains[i] - matchState.userGains[i]);
-                totalDiff += d;
-                errors.push({ band: bands[i].short, diff: d.toFixed(1) });
+            if (!matchTarget.length) {
+                alert('Click "New Target" first');
+                return;
             }
-            const avg = totalDiff / bands.length;
-            let acc = Math.max(0, Math.round(100 - avg * 7));
-            if (avg < 1.0) acc = Math.max(acc, 97);
-            if (avg < 0.5) acc = 100;
 
-            const res = document.getElementById('match-result');
-            const accEl = document.getElementById('match-accuracy');
-            const fb = document.getElementById('match-feedback');
-            const bar = document.getElementById('match-bar');
-            const errEl = document.getElementById('band-errors');
-
-            accEl.textContent = acc;
-            bar.style.width = acc + '%';
-
-            if (acc >= 90) { fb.innerHTML = `<span class="text-emerald-400 font-semibold">Excellent!</span>`; launchConfetti(); }
-            else if (acc >= 75) fb.innerHTML = `<span class="text-emerald-400 font-semibold">Very close!</span>`;
-            else if (acc >= 60) fb.innerHTML = `<span class="text-amber-400 font-semibold">Good</span>`;
-            else fb.innerHTML = `<span class="text-rose-400 font-semibold">Keep going</span>`;
-
-            errEl.innerHTML = errors.map(e => `<div class="flex justify-between"><span>${e.band}</span><span class="font-mono ${parseFloat(e.diff)>2?'text-rose-400':'text-emerald-400'}">${e.diff} dB</span></div>`).join('');
-            res.classList.remove('hidden');
-            res.scrollIntoView({block:'center', behavior:'smooth'});
-
-            updateGlobalStats(acc);
-            saveProgress();
-        }
-
-        function showTargetBreakdown() {
-            if (!matchState.hasTarget) return;
-            const container = document.getElementById('band-errors');
-            container.innerHTML = bands.map((b, i) => `<div class="flex justify-between text-xs"><span>${b.short}</span><span class="font-mono text-violet-400">${matchState.targetGains[i].toFixed(1)} dB</span></div>`).join('');
-            document.getElementById('match-result').classList.remove('hidden');
-        }
-
-        function setAudioSource(type) {
-            currentAudioSource = type;
-            document.getElementById('btn-noise').classList.toggle('bg-emerald-500', type==='noise');
-            document.getElementById('btn-noise').classList.toggle('text-white', type==='noise');
-            document.getElementById('btn-noise').classList.toggle('text-zinc-300', type!=='noise');
-
-            document.getElementById('btn-upload').classList.toggle('bg-emerald-500', type==='upload');
-            document.getElementById('btn-upload').classList.toggle('text-white', type==='upload');
-            document.getElementById('btn-upload').classList.toggle('text-zinc-300', type!=='upload');
-
-            if (type === 'upload' && !uploadedBuffer) {
-                const input = document.createElement('input');
-                input.type = 'file'; input.accept = 'audio/*';
-                input.onchange = async (e) => {
-                    const file = e.target.files[0]; if (!file) return;
-                    const reader = new FileReader();
-                    reader.onload = async (ev) => {
-                        try {
-                            if (!audioContext) initAudio();
-                            uploadedBuffer = await audioContext.decodeAudioData(ev.target.result);
-                            document.getElementById('upload-status').classList.remove('hidden');
-                            document.getElementById('upload-status').classList.add('flex');
-                            document.getElementById('upload-filename').textContent = file.name;
-                        } catch { alert('Could not load file. Try WAV or MP3.'); }
-                    };
-                    reader.readAsArrayBuffer(file);
-                };
-                input.click();
+            let diff = 0;
+            for (let i = 0; i < 7; i++) {
+                diff += Math.abs(matchTarget[i] - userGains[i]);
             }
-        }
+            const accuracy = Math.max(0, Math.round(100 - (diff / 7) * 6));
 
-        function clearUploadedAudio() {
-            uploadedBuffer = null;
-            document.getElementById('upload-status').classList.add('hidden');
-            document.getElementById('upload-status').classList.remove('flex');
-            setAudioSource('noise');
-        }
-
-        function loadProgress() {
-            const saved = localStorage.getItem('eqEarProProgress');
-            if (saved) {
-                const d = JSON.parse(saved);
-                if (d.streak) document.getElementById('global-streak').textContent = d.streak;
-                if (d.acc) document.getElementById('global-accuracy').textContent = d.acc + '%';
-                if (d.idStreak) { idState.streak = d.idStreak; document.getElementById('id-streak').textContent = d.idStreak; }
-            }
-        }
-
-        function saveProgress() {
-            const data = { streak: document.getElementById('global-streak').textContent, acc: document.getElementById('global-accuracy').textContent.replace('%',''), idStreak: idState.streak };
-            localStorage.setItem('eqEarProProgress', JSON.stringify(data));
-        }
-
-        function updateGlobalStats(newAcc) {
-            const el = document.getElementById('global-accuracy');
-            let cur = parseFloat(el.textContent) || 75;
-            cur = Math.round(cur * 0.65 + newAcc * 0.35);
-            el.textContent = cur + '%';
-            saveProgress();
-        }
-
-        function launchConfetti() {
-            for (let i = 0; i < 36; i++) {
-                setTimeout(() => {
-                    const p = document.createElement('div');
-                    p.textContent = ['🎵','🎚️','🔊','✨'][Math.floor(Math.random()*4)];
-                    p.style.cssText = `position:fixed;left:${Math.random()*100}vw;top:-30px;font-size:${13+Math.random()*16}px;z-index:9999;opacity:0.7`;
-                    document.body.appendChild(p);
-                    setTimeout(() => { p.style.transition = 'transform 1.7s cubic-bezier(.2,1,.3,1),opacity 1.7s'; p.style.transform = `translateY(${260+Math.random()*170}px) rotate(${25+Math.random()*50}deg)`; p.style.opacity='0'; }, 50);
-                    setTimeout(() => p.remove(), 2300);
-                }, i * 1.8);
-            }
-        }
-
-        function setupKeyboard() {
-            document.addEventListener('keydown', e => {
-                if (e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); const idActive = document.getElementById('frequency-id').getBoundingClientRect().top < 280; if (idActive) { const t = document.getElementById('play-id-text'); if (t.textContent.includes('PLAY')) startIDRound(); } else { playUserEQ(); } }
-                if (e.key.toLowerCase() === 'r') randomizeTarget();
-                if (e.key.toLowerCase() === 'u') setAudioSource('upload');
-            });
+            const result = document.getElementById('match-result');
+            result.classList.remove('hidden');
+            result.innerHTML = `
+                <div class="text-5xl font-display font-semibold text-emerald-400">${accuracy}</div>
+                <div class="text-sm text-zinc-400">% Match Accuracy</div>
+            `;
         }
 
         function initializeApp() {
             createGuessButtons();
             createSliders();
-            loadProgress();
-            setupKeyboard();
 
-            document.getElementById('match-difficulty').value = 'medium';
-            matchState.difficulty = 'medium';
-
+            // Demo target
             setTimeout(() => {
-                if (!matchState.hasTarget) {
-                    matchState.targetGains = [3.2, -2.5, 4.8, -1.8, 5.3, -2.9, 3.1, -3.7, 4.2, -2.1, 3.8, -1.6, 2.4, -3.4];
-                    matchState.hasTarget = true;
-                }
-            }, 800);
+                matchTarget = [4, -3, 5, -2, 6, -4, 3];
+            }, 1000);
 
-            document.addEventListener('click', function first() { if (!audioContext) initAudio(); document.removeEventListener('click', first); }, {once:true});
-
-            console.log('%c[EQ Ear Trainer] Rolled back to previous working model (no test button)', 'color:#22c55e');
+            console.log('%c[EQ Ear Trainer] Initial version loaded', 'color:#22c55e');
         }
 
         window.onload = initializeApp;
