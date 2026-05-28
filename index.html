@@ -55,6 +55,18 @@
                 </div>
             </div>
 
+            <!-- Stats -->
+            <div class="flex items-center gap-x-6 mb-5 text-sm">
+                <div class="flex items-center gap-x-2">
+                    <span class="text-emerald-400 font-mono text-xl" id="id-streak">0</span>
+                    <span class="text-xs text-zinc-500">streak</span>
+                </div>
+                <div class="flex items-center gap-x-2">
+                    <span class="font-semibold" id="id-accuracy">--</span>
+                    <span class="text-xs text-zinc-500">accuracy</span>
+                </div>
+            </div>
+
             <div id="guess-buttons" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-3 mb-6">
                 <!-- Populated by JS -->
             </div>
@@ -119,6 +131,10 @@
         let noiseBuffer;
         let currentSource = null;
         let currentBandMode = 'few';
+
+        let idStreak = 0;
+        let idCorrect = 0;
+        let idTotal = 0;
 
         // FEW BANDS - like the very first version (spans entire spectrum)
         const fewBands = [
@@ -224,8 +240,8 @@
             }
 
             createGuessButtons();
-            createSliders();           // ← Update sliders when toggle changes
-            matchTarget = [];          // Reset target when mode changes
+            createSliders();
+            matchTarget = [];
             document.getElementById('match-result').classList.add('hidden');
         }
 
@@ -262,11 +278,20 @@
             const fb = document.getElementById('id-feedback');
             fb.classList.remove('hidden');
 
+            idTotal++;
+
             if (index === idTarget) {
+                idCorrect++;
+                idStreak++;
                 fb.innerHTML = `<div class="text-emerald-400 font-semibold">Correct! It was ${currentBands[index].name}</div>`;
                 fb.style.background = 'rgba(16,185,129,0.1)';
                 fb.style.border = '1px solid #22c55e';
+
+                document.getElementById('id-streak').textContent = idStreak;
+                updateAccuracy();
             } else {
+                idStreak = 0;
+                document.getElementById('id-streak').textContent = '0';
                 fb.innerHTML = `<div class="text-rose-400 font-semibold">Wrong. It was ${currentBands[idTarget].name}</div>`;
                 fb.style.background = 'rgba(244,63,94,0.1)';
                 fb.style.border = '1px solid #f43f5e';
@@ -276,6 +301,13 @@
                 fb.classList.add('hidden');
                 idTarget = null;
             }, 1800);
+        }
+
+        function updateAccuracy() {
+            if (idTotal > 0) {
+                const acc = Math.round((idCorrect / idTotal) * 100);
+                document.getElementById('id-accuracy').textContent = acc + '%';
+            }
         }
 
         function createSliders() {
@@ -345,14 +377,33 @@
             `;
         }
 
+        function setupKeyboard() {
+            document.addEventListener('keydown', function(e) {
+                if (e.key === ' ' || e.key === 'Spacebar') {
+                    e.preventDefault();
+                    startIDRound();
+                }
+
+                // Number keys 1-9 for guessing
+                const num = parseInt(e.key);
+                if (!isNaN(num) && num >= 1 && num <= currentBands.length) {
+                    const buttons = document.querySelectorAll('#guess-buttons button');
+                    if (buttons[num - 1]) {
+                        buttons[num - 1].click();
+                    }
+                }
+            });
+        }
+
         function initializeApp() {
             createGuessButtons();
             createSliders();
+            setupKeyboard();
 
             // Default to few bands
             document.getElementById('btn-few').classList.add('bg-emerald-500', 'text-white');
 
-            console.log('%c[EQ Ear Trainer] EQ Matching now respects Few/Many toggle', 'color:#22c55e');
+            console.log('%c[EQ Ear Trainer] Streak, accuracy & keyboard shortcuts added', 'color:#22c55e');
         }
 
         window.onload = initializeApp;
