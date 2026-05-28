@@ -50,6 +50,16 @@
             <span class="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Train precisely.</span>
         </h1>
         <p class="max-w-md mx-auto text-lg text-zinc-400">14 precise frequency points • Upload your tracks • Real parametric EQ</p>
+        
+        <!-- Test Audio Button -->
+        <div class="mt-6">
+            <button onclick="playTestSound()" 
+                    class="px-6 py-2.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-sm rounded-3xl flex items-center gap-x-2 mx-auto">
+                <i class="fa-solid fa-volume-up"></i>
+                <span>Test Audio (click if silent)</span>
+            </button>
+            <p class="text-xs text-zinc-500 mt-1">Click this first if you hear nothing</p>
+        </div>
     </div>
 
     <div class="max-w-5xl mx-auto px-6 mb-10">
@@ -285,7 +295,6 @@
             isPlaying = false;
         }
 
-        // RESTORED: Original working audio method (broadband noise + one band boost)
         function playWithEQ(gains, duration = 3.8, customBuffer = null) {
             if (!audioContext) initAudio();
             if (isPlaying) stopCurrent();
@@ -323,6 +332,26 @@
             if (audioContext.state === 'suspended') audioContext.resume();
         }
 
+        function playTestSound() {
+            if (!audioContext) initAudio();
+            if (isPlaying) stopCurrent();
+
+            const osc = audioContext.createOscillator();
+            osc.type = 'sine';
+            osc.frequency.value = 440;
+
+            const gain = audioContext.createGain();
+            gain.gain.value = 0.4;
+
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            osc.start();
+
+            setTimeout(() => {
+                osc.stop();
+            }, 600);
+        }
+
         function createGuessButtons() {
             const grid = document.getElementById('guess-grid');
             grid.innerHTML = '';
@@ -352,9 +381,8 @@
 
             idState.targetIndex = Math.floor(Math.random() * bands.length);
 
-            // Original working method: boost one band on full noise
             const gains = new Array(bands.length).fill(0);
-            const boost = 9 + Math.random() * 7; // +9 to +16 dB
+            const boost = 9 + Math.random() * 7;
             gains[idState.targetIndex] = boost;
 
             const useUpload = currentAudioSource === 'upload' && uploadedBuffer;
@@ -647,12 +675,12 @@
             setTimeout(() => {
                 const t = document.createElement('div');
                 t.className = 'fixed bottom-6 right-6 bg-zinc-900 border border-zinc-700 px-5 py-3 rounded-3xl text-xs flex items-center gap-x-3 shadow-xl';
-                t.innerHTML = `<i class="fa-solid fa-info-circle text-emerald-400"></i> <span>Audio restored to original working version</span>`;
+                t.innerHTML = `<i class="fa-solid fa-info-circle text-emerald-400"></i> <span>Click the Test Audio button above if you hear nothing</span>`;
                 document.body.appendChild(t);
                 setTimeout(() => { t.style.transition='opacity .4s'; t.style.opacity='0'; setTimeout(()=>t.remove(),400); }, 4800);
             }, 5200);
 
-            console.log('%c[EQ Ear Trainer] Audio restored to original working version', 'color:#22c55e');
+            console.log('%c[EQ Ear Trainer] Audio restored + Test Sound button added', 'color:#22c55e');
         }
 
         window.onload = initializeApp;
