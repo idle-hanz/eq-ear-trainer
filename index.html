@@ -120,7 +120,19 @@
         let currentSource = null;
         let currentBandMode = 'few';
 
-        const allBands = [
+        // FEW BANDS - like the very first version (spans entire spectrum)
+        const fewBands = [
+            { name: "Sub Bass", freq: 40, color: "#ef4444" },
+            { name: "Bass", freq: 120, color: "#f97316" },
+            { name: "Low Mids", freq: 300, color: "#eab308" },
+            { name: "Mids", freq: 700, color: "#22c55e" },
+            { name: "Upper Mids", freq: 1500, color: "#3b82f6" },
+            { name: "Presence", freq: 3500, color: "#a855f7" },
+            { name: "Highs", freq: 8000, color: "#ec4899" }
+        ];
+
+        // MANY BANDS - like the last version (precise frequencies)
+        const manyBands = [
             { name: "80 Hz", freq: 80, color: "#ef4444" },
             { name: "100 Hz", freq: 100, color: "#f97316" },
             { name: "160 Hz", freq: 160, color: "#fb923c" },
@@ -137,7 +149,7 @@
             { name: "15 kHz", freq: 15000, color: "#e879f9" }
         ];
 
-        let currentBands = allBands.slice(0, 7); // Start with few bands
+        let currentBands = fewBands;
 
         let idTarget = null;
         let matchTarget = [];
@@ -198,13 +210,13 @@
             currentBandMode = mode;
 
             if (mode === 'few') {
-                currentBands = allBands.slice(0, 7);
+                currentBands = fewBands;
                 document.getElementById('btn-few').classList.add('bg-emerald-500', 'text-white');
                 document.getElementById('btn-few').classList.remove('text-zinc-300', 'hover:bg-zinc-700');
                 document.getElementById('btn-many').classList.remove('bg-emerald-500', 'text-white');
                 document.getElementById('btn-many').classList.add('text-zinc-300', 'hover:bg-zinc-700');
             } else {
-                currentBands = allBands;
+                currentBands = manyBands;
                 document.getElementById('btn-many').classList.add('bg-emerald-500', 'text-white');
                 document.getElementById('btn-many').classList.remove('text-zinc-300', 'hover:bg-zinc-700');
                 document.getElementById('btn-few').classList.remove('bg-emerald-500', 'text-white');
@@ -267,7 +279,7 @@
             const container = document.getElementById('sliders');
             container.innerHTML = '';
 
-            allBands.forEach((band, i) => {
+            manyBands.forEach((band, i) => {
                 const div = document.createElement('div');
                 div.className = 'flex items-center gap-x-4';
                 div.innerHTML = `
@@ -285,8 +297,8 @@
         }
 
         function randomizeTarget() {
-            matchTarget = allBands.map(() => (Math.random() * 16 - 8).toFixed(1) * 1);
-            userGains = new Array(allBands.length).fill(0);
+            matchTarget = manyBands.map(() => (Math.random() * 16 - 8).toFixed(1) * 1);
+            userGains = new Array(manyBands.length).fill(0);
 
             const inputs = document.querySelectorAll('#sliders input');
             inputs.forEach((input, i) => {
@@ -316,10 +328,10 @@
             }
 
             let diff = 0;
-            for (let i = 0; i < allBands.length; i++) {
+            for (let i = 0; i < manyBands.length; i++) {
                 diff += Math.abs(matchTarget[i] - userGains[i]);
             }
-            const accuracy = Math.max(0, Math.round(100 - (diff / allBands.length) * 6));
+            const accuracy = Math.max(0, Math.round(100 - (diff / manyBands.length) * 6));
 
             const result = document.getElementById('match-result');
             result.classList.remove('hidden');
@@ -338,10 +350,10 @@
 
             // Demo target
             setTimeout(() => {
-                matchTarget = new Array(allBands.length).fill(0).map(() => (Math.random() * 12 - 6));
+                matchTarget = new Array(manyBands.length).fill(0).map(() => (Math.random() * 12 - 6));
             }, 1000);
 
-            console.log('%c[EQ Ear Trainer] Toggle between few/many bands added', 'color:#22c55e');
+            console.log('%c[EQ Ear Trainer] Few bands = original spectrum style | Many bands = precise 14-band', 'color:#22c55e');
         }
 
         window.onload = initializeApp;
