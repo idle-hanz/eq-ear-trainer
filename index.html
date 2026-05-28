@@ -32,9 +32,9 @@
             <div class="flex items-center gap-x-6 text-sm">
                 <a href="#frequency-id" class="hover:text-emerald-400 px-3 py-1.5">ID Game</a>
                 <a href="#eq-match" class="hover:text-emerald-400 px-3 py-1.5">EQ Match</a>
-                <a href="https://github.com/idle-hanz/eq-ear-trainer" target="_blank" class="flex items-center gap-x-2 text-zinc-400 hover:text-white">
-                    <i class="fa-brands fa-github"></i> <span class="hidden sm:inline">GitHub</span>
-                </a>
+                <button onclick="testAudio()" class="px-4 py-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-2xl flex items-center gap-x-2">
+                    <i class="fa-solid fa-volume-up"></i> <span>Test Sound</span>
+                </button>
             </div>
         </div>
     </nav>
@@ -42,14 +42,14 @@
     <div class="max-w-5xl mx-auto px-6 pt-14 pb-8 text-center">
         <div class="inline-flex items-center gap-x-2 px-4 py-1 rounded-3xl bg-zinc-900 border border-zinc-800 mb-5">
             <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-            <span class="text-xs font-medium tracking-[1.5px] text-emerald-400">PRO • 14 BANDS + UPLOAD + ISOLATED MODE</span>
+            <span class="text-xs font-medium tracking-[1.5px] text-emerald-400">PRO • 14 BANDS + UPLOAD</span>
         </div>
         
         <h1 class="text-6xl md:text-7xl font-display font-semibold tracking-tighter leading-none mb-4">
             Hear exactly.<br>
             <span class="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Train precisely.</span>
         </h1>
-        <p class="max-w-md mx-auto text-lg text-zinc-400">14 isolated frequency points • Upload your tracks • Real parametric EQ</p>
+        <p class="max-w-md mx-auto text-lg text-zinc-400">14 frequency points • Upload your tracks • Real parametric EQ</p>
     </div>
 
     <div class="max-w-5xl mx-auto px-6 mb-10">
@@ -76,10 +76,10 @@
                     </div>
                     <h2 class="text-4xl font-display font-semibold tracking-tight">Frequency Identification</h2>
                 </div>
-                <p class="text-zinc-400 mt-1 text-sm">Only one narrow frequency band is audible. Identify it.</p>
+                <p class="text-zinc-400 mt-1 text-sm">A pure tone plays at one frequency. Identify it.</p>
             </div>
             <div class="text-xs px-3 py-1 bg-zinc-900 rounded-2xl border border-zinc-800 hidden md:block">
-                Isolated bandpass mode • +10 to +16 dB
+                Pure sine tone • Clear & reliable
             </div>
         </div>
 
@@ -105,7 +105,7 @@
                 <div class="mt-8 space-y-3">
                     <button onclick="startIDRound()" class="audio-btn w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-3xl flex items-center justify-center gap-x-3 text-base shadow-lg shadow-emerald-500/30">
                         <i class="fa-solid fa-play"></i>
-                        <span id="play-id-text">PLAY ISOLATED BAND</span>
+                        <span id="play-id-text">PLAY TONE</span>
                     </button>
                     <button onclick="resetIDGame()" class="w-full py-2.5 text-xs border border-zinc-700 hover:bg-zinc-800 rounded-3xl flex items-center justify-center gap-x-2">
                         <i class="fa-solid fa-redo"></i> <span>Reset Session</span>
@@ -233,7 +233,7 @@
 
     <footer class="border-t border-zinc-800 py-10">
         <div class="max-w-5xl mx-auto px-6 text-center text-xs text-zinc-500">
-            Built with Grok • 14-band isolated training • Upload your own audio<br>
+            Built with Grok • 14-band training • Upload your own audio<br>
             <span class="text-emerald-400">Train daily → Hear frequencies instantly</span>
         </div>
     </footer>
@@ -268,8 +268,12 @@
 
         function initAudio() {
             if (audioContext) return;
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            noiseBuffer = createNoiseBuffer();
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                noiseBuffer = createNoiseBuffer();
+            } catch (e) {
+                alert("Audio not supported in this browser. Please use Chrome, Firefox or Edge.");
+            }
         }
 
         function createNoiseBuffer() {
@@ -285,54 +289,33 @@
             isPlaying = false;
         }
 
-        // FIXED: Louder isolated band (better audibility)
+        // RELIABLE: Pure sine tone for ID game (guaranteed to play)
         function playIsolatedBand(index) {
             if (!audioContext) initAudio();
             if (isPlaying) stopCurrent();
 
             const f = bands[index].freq;
-            const source = audioContext.createBufferSource();
-            source.buffer = noiseBuffer;
+            const osc = audioContext.createOscillator();
+            osc.type = 'sine';
+            osc.frequency.value = f;
 
-            let node = source;
+            const gain = audioContext.createGain();
+            gain.gain.value = 0.6;
 
-            const bp = audioContext.createBiquadFilter();
-            bp.type = 'bandpass';
-            bp.frequency.value = f;
-            bp.Q.value = 4.2;                 // slightly wider for better volume
-            node.connect(bp);
-            node = bp;
+            // Gentle envelope
+            const now = audioContext.currentTime;
+            gain.gain.setValueAtTime(0.01, now);
+            gain.gain.linearRampToValueAtTime(0.6, now + 0.08);
+            gain.gain.linearRampToValueAtTime(0.01, now + 3.6);
 
-            const peak = audioContext.createBiquadFilter();
-            peak.type = 'peaking';
-            peak.frequency.value = f;
-            peak.gain.value = 14 + Math.random() * 6;   // stronger boost
-            peak.Q.value = 3.5;
-            node.connect(peak);
-            node = peak;
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
 
-            const hp = audioContext.createBiquadFilter();
-            hp.type = 'highpass';
-            hp.frequency.value = 20;
-            node.connect(hp);
-            node = hp;
-
-            const lp = audioContext.createBiquadFilter();
-            lp.type = 'lowpass';
-            lp.frequency.value = 18000;
-            node.connect(lp);
-            node = lp;
-
-            const master = audioContext.createGain();
-            master.gain.value = 1.35;        // louder!
-            node.connect(master);
-            master.connect(audioContext.destination);
-
-            source.start();
-            currentSource = source;
+            osc.start(now);
+            currentSource = osc;
             isPlaying = true;
 
-            setTimeout(() => { if (currentSource === source) stopCurrent(); }, 3800);
+            setTimeout(() => { if (currentSource === osc) stopCurrent(); }, 3800);
             if (audioContext.state === 'suspended') audioContext.resume();
         }
 
@@ -361,7 +344,7 @@
             });
 
             const master = audioContext.createGain();
-            master.gain.value = customBuffer ? 0.9 : 0.72;   // slightly louder overall
+            master.gain.value = customBuffer ? 0.9 : 0.72;
             node.connect(master);
             master.connect(audioContext.destination);
 
@@ -410,7 +393,7 @@
         }
 
         function makeGuess(guessIdx, btn) {
-            if (idState.targetIndex === null) { alert('Play the isolated band first!'); return; }
+            if (idState.targetIndex === null) { alert('Play the tone first!'); return; }
 
             const correct = guessIdx === idState.targetIndex;
             const fb = document.getElementById('id-feedback');
@@ -423,7 +406,7 @@
             if (correct) {
                 idState.correct++;
                 idState.streak++;
-                fb.innerHTML = `<div class="flex gap-3"><div class="text-emerald-400 text-2xl mt-0.5"><i class="fa-solid fa-check-circle"></i></div><div><div class="font-semibold text-emerald-400">Correct! ${bands[guessIdx].name} — ${bands[guessIdx].role}</div><div class="text-xs text-zinc-400">Excellent isolation training!</div></div></div>`;
+                fb.innerHTML = `<div class="flex gap-3"><div class="text-emerald-400 text-2xl mt-0.5"><i class="fa-solid fa-check-circle"></i></div><div><div class="font-semibold text-emerald-400">Correct! ${bands[guessIdx].name} — ${bands[guessIdx].role}</div><div class="text-xs text-zinc-400">Great job!</div></div></div>`;
                 fb.style.border = '1px solid #22c55e';
                 fb.style.background = 'rgba(16,185,129,0.08)';
 
@@ -460,7 +443,7 @@
             document.getElementById('id-streak').textContent = '0';
             document.getElementById('id-streak-bar').style.width = '0%';
             document.getElementById('id-feedback').classList.add('hidden');
-            document.getElementById('play-id-text').innerHTML = 'PLAY ISOLATED BAND';
+            document.getElementById('play-id-text').innerHTML = 'PLAY TONE';
         }
 
         function createSliders() {
@@ -625,6 +608,33 @@
             setAudioSource('noise');
         }
 
+        // NEW: Test button - plays 1kHz sine so user can confirm audio works
+        function testAudio() {
+            if (!audioContext) initAudio();
+            if (isPlaying) stopCurrent();
+
+            const osc = audioContext.createOscillator();
+            osc.type = 'sine';
+            osc.frequency.value = 1000;
+
+            const gain = audioContext.createGain();
+            gain.gain.value = 0.5;
+
+            const now = audioContext.currentTime;
+            gain.gain.setValueAtTime(0.01, now);
+            gain.gain.linearRampToValueAtTime(0.5, now + 0.05);
+            gain.gain.linearRampToValueAtTime(0.01, now + 1.8);
+
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            osc.start(now);
+            currentSource = osc;
+            isPlaying = true;
+
+            setTimeout(() => { if (currentSource === osc) stopCurrent(); }, 2000);
+            if (audioContext.state === 'suspended') audioContext.resume();
+        }
+
         function loadProgress() {
             const saved = localStorage.getItem('eqEarProProgress');
             if (saved) {
@@ -690,12 +700,12 @@
             setTimeout(() => {
                 const t = document.createElement('div');
                 t.className = 'fixed bottom-6 right-6 bg-zinc-900 border border-zinc-700 px-5 py-3 rounded-3xl text-xs flex items-center gap-x-3 shadow-xl';
-                t.innerHTML = `<i class="fa-solid fa-info-circle text-emerald-400"></i> <span>Volume increased — should be much louder now!</span>`;
+                t.innerHTML = `<i class="fa-solid fa-info-circle text-emerald-400"></i> <span>Click "Test Sound" if you hear nothing</span>`;
                 document.body.appendChild(t);
                 setTimeout(() => { t.style.transition='opacity .4s'; t.style.opacity='0'; setTimeout(()=>t.remove(),400); }, 4800);
             }, 5200);
 
-            console.log('%c[EQ Ear Trainer] Volume fix applied — isolated mode louder', 'color:#22c55e');
+            console.log('%c[EQ Ear Trainer] Now using reliable sine tones for ID game', 'color:#22c55e');
         }
 
         window.onload = initializeApp;
