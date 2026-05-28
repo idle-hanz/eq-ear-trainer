@@ -32,19 +32,19 @@
     </div>
 
     <!-- Frequency ID -->
-    <div class="max-w-4xl mx-auto px-6 pb-16">
+    <div class="max-w-5xl mx-auto px-6 pb-16">
         <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
             <div class="flex items-center justify-between mb-6">
                 <div>
                     <div class="text-emerald-400 text-sm font-medium">FREQUENCY IDENTIFICATION</div>
-                    <div class="text-3xl font-semibold">Which band was boosted?</div>
+                    <div class="text-3xl font-semibold">Which frequency was boosted?</div>
                 </div>
                 <button onclick="startIDRound()" class="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-3xl flex items-center gap-x-2">
                     <i class="fa-solid fa-play"></i> <span>PLAY</span>
                 </button>
             </div>
 
-            <div id="guess-buttons" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mb-6">
+            <div id="guess-buttons" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-3 mb-6">
                 <!-- Populated by JS -->
             </div>
 
@@ -98,7 +98,7 @@
 
             <div id="match-result" class="hidden mt-6 p-4 bg-zinc-800 rounded-2xl text-center">
                 <div class="text-4xl font-display font-semibold text-emerald-400" id="match-accuracy">87</div>
-                <div class="text-sm text-zinc-400">% Accuracy</div>
+                <div class="text-sm text-zinc-400">% Match Accuracy</div>
             </div>
         </div>
     </div>
@@ -109,18 +109,25 @@
         let currentSource = null;
 
         const bands = [
-            { name: "Sub Bass", freq: 40, color: "#ef4444" },
-            { name: "Bass", freq: 120, color: "#f97316" },
-            { name: "Low Mids", freq: 300, color: "#eab308" },
-            { name: "Mids", freq: 700, color: "#22c55e" },
-            { name: "Upper Mids", freq: 1500, color: "#3b82f6" },
-            { name: "Presence", freq: 3500, color: "#a855f7" },
-            { name: "Highs", freq: 8000, color: "#ec4899" }
+            { name: "80 Hz", freq: 80, color: "#ef4444" },
+            { name: "100 Hz", freq: 100, color: "#f97316" },
+            { name: "160 Hz", freq: 160, color: "#fb923c" },
+            { name: "315 Hz", freq: 315, color: "#eab308" },
+            { name: "500 Hz", freq: 500, color: "#84cc16" },
+            { name: "800 Hz", freq: 800, color: "#22c55e" },
+            { name: "1 kHz", freq: 1000, color: "#10b981" },
+            { name: "2 kHz", freq: 2000, color: "#14b8a6" },
+            { name: "4 kHz", freq: 4000, color: "#06b6d4" },
+            { name: "5 kHz", freq: 5000, color: "#3b82f6" },
+            { name: "6 kHz", freq: 6000, color: "#6366f1" },
+            { name: "8 kHz", freq: 8000, color: "#a855f7" },
+            { name: "10 kHz", freq: 10000, color: "#c026ff" },
+            { name: "15 kHz", freq: 15000, color: "#e879f9" }
         ];
 
         let idTarget = null;
         let matchTarget = [];
-        let userGains = [0,0,0,0,0,0,0];
+        let userGains = new Array(14).fill(0);
 
         function initAudio() {
             if (audioContext) return;
@@ -182,12 +189,11 @@
                 btn.className = `p-4 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-2xl text-left transition-all`;
                 btn.innerHTML = `
                     <div class="flex items-center gap-x-3">
-                        <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm" style="background:${band.color}22; color:${band.color}">
-                            <i class="fa-solid fa-music"></i>
+                        <div class="w-8 h-8 rounded-xl flex items-center justify-center text-sm font-mono" style="background:${band.color}22; color:${band.color}">
+                            ${band.freq < 1000 ? band.freq : (band.freq/1000) + 'k'}
                         </div>
                         <div>
                             <div class="font-semibold">${band.name}</div>
-                            <div class="text-xs text-zinc-500">${band.freq} Hz</div>
                         </div>
                     </div>
                 `;
@@ -198,7 +204,7 @@
 
         function startIDRound() {
             idTarget = Math.floor(Math.random() * bands.length);
-            const gains = new Array(7).fill(0);
+            const gains = new Array(bands.length).fill(0);
             gains[idTarget] = 10 + Math.random() * 6;
             playWithEQ(gains);
         }
@@ -231,10 +237,10 @@
                 const div = document.createElement('div');
                 div.className = 'flex items-center gap-x-4';
                 div.innerHTML = `
-                    <div class="w-24 text-sm">${band.name}</div>
+                    <div class="w-28 text-sm">${band.name}</div>
                     <input type="range" min="-12" max="12" step="0.5" value="0" class="flex-1 accent-emerald-500" 
                            oninput="userGains[${i}] = parseFloat(this.value); updateSliderVisual(${i}, this.value)">
-                    <div class="w-12 text-right font-mono text-sm" id="val-${i}">0 dB</div>
+                    <div class="w-14 text-right font-mono text-sm" id="val-${i}">0 dB</div>
                 `;
                 container.appendChild(div);
             });
@@ -246,7 +252,7 @@
 
         function randomizeTarget() {
             matchTarget = bands.map(() => (Math.random() * 16 - 8).toFixed(1) * 1);
-            userGains = [0,0,0,0,0,0,0];
+            userGains = new Array(bands.length).fill(0);
 
             const inputs = document.querySelectorAll('#sliders input');
             inputs.forEach((input, i) => {
@@ -276,10 +282,10 @@
             }
 
             let diff = 0;
-            for (let i = 0; i < 7; i++) {
+            for (let i = 0; i < bands.length; i++) {
                 diff += Math.abs(matchTarget[i] - userGains[i]);
             }
-            const accuracy = Math.max(0, Math.round(100 - (diff / 7) * 6));
+            const accuracy = Math.max(0, Math.round(100 - (diff / bands.length) * 6));
 
             const result = document.getElementById('match-result');
             result.classList.remove('hidden');
@@ -295,10 +301,10 @@
 
             // Demo target
             setTimeout(() => {
-                matchTarget = [4, -3, 5, -2, 6, -4, 3];
+                matchTarget = new Array(bands.length).fill(0).map(() => (Math.random() * 12 - 6));
             }, 1000);
 
-            console.log('%c[EQ Ear Trainer] Initial version loaded', 'color:#22c55e');
+            console.log('%c[EQ Ear Trainer] 14-band version loaded', 'color:#22c55e');
         }
 
         window.onload = initializeApp;
