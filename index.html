@@ -285,7 +285,7 @@
             isPlaying = false;
         }
 
-        // NEW: Isolated band for ID game (only that frequency audible)
+        // FIXED: Louder isolated band (better audibility)
         function playIsolatedBand(index) {
             if (!audioContext) initAudio();
             if (isPlaying) stopCurrent();
@@ -296,24 +296,21 @@
 
             let node = source;
 
-            // Narrow bandpass to isolate the band
             const bp = audioContext.createBiquadFilter();
             bp.type = 'bandpass';
             bp.frequency.value = f;
-            bp.Q.value = 5.5;           // quite narrow
+            bp.Q.value = 4.2;                 // slightly wider for better volume
             node.connect(bp);
             node = bp;
 
-            // Extra peaking boost for clarity
             const peak = audioContext.createBiquadFilter();
             peak.type = 'peaking';
             peak.frequency.value = f;
-            peak.gain.value = 12 + Math.random() * 5;
-            peak.Q.value = 3.8;
+            peak.gain.value = 14 + Math.random() * 6;   // stronger boost
+            peak.Q.value = 3.5;
             node.connect(peak);
             node = peak;
 
-            // Gentle overall shaping
             const hp = audioContext.createBiquadFilter();
             hp.type = 'highpass';
             hp.frequency.value = 20;
@@ -327,7 +324,7 @@
             node = lp;
 
             const master = audioContext.createGain();
-            master.gain.value = 0.75;
+            master.gain.value = 1.35;        // louder!
             node.connect(master);
             master.connect(audioContext.destination);
 
@@ -364,7 +361,7 @@
             });
 
             const master = audioContext.createGain();
-            master.gain.value = customBuffer ? 0.85 : 0.55;
+            master.gain.value = customBuffer ? 0.9 : 0.72;   // slightly louder overall
             node.connect(master);
             master.connect(audioContext.destination);
 
@@ -376,7 +373,6 @@
             if (audioContext.state === 'suspended') audioContext.resume();
         }
 
-        // ID GAME
         function createGuessButtons() {
             const grid = document.getElementById('guess-grid');
             grid.innerHTML = '';
@@ -467,7 +463,6 @@
             document.getElementById('play-id-text').innerHTML = 'PLAY ISOLATED BAND';
         }
 
-        // EQ MATCHING (unchanged logic, just cleaner)
         function createSliders() {
             const row = document.getElementById('sliders-row');
             row.innerHTML = '';
@@ -695,12 +690,12 @@
             setTimeout(() => {
                 const t = document.createElement('div');
                 t.className = 'fixed bottom-6 right-6 bg-zinc-900 border border-zinc-700 px-5 py-3 rounded-3xl text-xs flex items-center gap-x-3 shadow-xl';
-                t.innerHTML = `<i class="fa-solid fa-info-circle text-emerald-400"></i> <span>Isolated mode now plays only one narrow band — much clearer!</span>`;
+                t.innerHTML = `<i class="fa-solid fa-info-circle text-emerald-400"></i> <span>Volume increased — should be much louder now!</span>`;
                 document.body.appendChild(t);
                 setTimeout(() => { t.style.transition='opacity .4s'; t.style.opacity='0'; setTimeout(()=>t.remove(),400); }, 4800);
             }, 5200);
 
-            console.log('%c[EQ Ear Trainer] Updated: isolated bandpass + cleaner buttons', 'color:#22c55e');
+            console.log('%c[EQ Ear Trainer] Volume fix applied — isolated mode louder', 'color:#22c55e');
         }
 
         window.onload = initializeApp;
