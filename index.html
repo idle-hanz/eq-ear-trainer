@@ -39,9 +39,20 @@
                     <div class="text-emerald-400 text-sm font-medium">FREQUENCY IDENTIFICATION</div>
                     <div class="text-3xl font-semibold">Which frequency was boosted?</div>
                 </div>
-                <button onclick="startIDRound()" class="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-3xl flex items-center gap-x-2">
-                    <i class="fa-solid fa-play"></i> <span>PLAY</span>
-                </button>
+
+                <div class="flex items-center gap-x-3">
+                    <!-- Toggle -->
+                    <div class="flex items-center bg-zinc-800 rounded-3xl p-1 text-xs">
+                        <button onclick="setBandMode('few')" id="btn-few"
+                                class="px-4 py-1.5 rounded-[20px] bg-emerald-500 text-white font-medium">Few Bands</button>
+                        <button onclick="setBandMode('many')" id="btn-many"
+                                class="px-4 py-1.5 rounded-[20px] text-zinc-300 hover:bg-zinc-700">Many Bands</button>
+                    </div>
+
+                    <button onclick="startIDRound()" class="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-3xl flex items-center gap-x-2">
+                        <i class="fa-solid fa-play"></i> <span>PLAY</span>
+                    </button>
+                </div>
             </div>
 
             <div id="guess-buttons" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-3 mb-6">
@@ -107,8 +118,9 @@
         let audioContext;
         let noiseBuffer;
         let currentSource = null;
+        let currentBandMode = 'few';
 
-        const bands = [
+        const allBands = [
             { name: "80 Hz", freq: 80, color: "#ef4444" },
             { name: "100 Hz", freq: 100, color: "#f97316" },
             { name: "160 Hz", freq: 160, color: "#fb923c" },
@@ -124,6 +136,8 @@
             { name: "10 kHz", freq: 10000, color: "#c026ff" },
             { name: "15 kHz", freq: 15000, color: "#e879f9" }
         ];
+
+        let currentBands = allBands.slice(0, 7); // Start with few bands
 
         let idTarget = null;
         let matchTarget = [];
@@ -160,7 +174,7 @@
             lp.type = 'lowpass'; lp.frequency.value = 12000;
             node.connect(lp); node = lp;
 
-            bands.forEach((band, i) => {
+            currentBands.forEach((band, i) => {
                 const f = audioContext.createBiquadFilter();
                 f.type = 'peaking';
                 f.frequency.value = band.freq;
@@ -180,11 +194,31 @@
             if (audioContext.state === 'suspended') audioContext.resume();
         }
 
+        function setBandMode(mode) {
+            currentBandMode = mode;
+
+            if (mode === 'few') {
+                currentBands = allBands.slice(0, 7);
+                document.getElementById('btn-few').classList.add('bg-emerald-500', 'text-white');
+                document.getElementById('btn-few').classList.remove('text-zinc-300', 'hover:bg-zinc-700');
+                document.getElementById('btn-many').classList.remove('bg-emerald-500', 'text-white');
+                document.getElementById('btn-many').classList.add('text-zinc-300', 'hover:bg-zinc-700');
+            } else {
+                currentBands = allBands;
+                document.getElementById('btn-many').classList.add('bg-emerald-500', 'text-white');
+                document.getElementById('btn-many').classList.remove('text-zinc-300', 'hover:bg-zinc-700');
+                document.getElementById('btn-few').classList.remove('bg-emerald-500', 'text-white');
+                document.getElementById('btn-few').classList.add('text-zinc-300', 'hover:bg-zinc-700');
+            }
+
+            createGuessButtons();
+        }
+
         function createGuessButtons() {
             const container = document.getElementById('guess-buttons');
             container.innerHTML = '';
 
-            bands.forEach((band, i) => {
+            currentBands.forEach((band, i) => {
                 const btn = document.createElement('button');
                 btn.className = `p-4 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-2xl text-left transition-all`;
                 btn.innerHTML = `
@@ -203,8 +237,8 @@
         }
 
         function startIDRound() {
-            idTarget = Math.floor(Math.random() * bands.length);
-            const gains = new Array(bands.length).fill(0);
+            idTarget = Math.floor(Math.random() * currentBands.length);
+            const gains = new Array(currentBands.length).fill(0);
             gains[idTarget] = 10 + Math.random() * 6;
             playWithEQ(gains);
         }
@@ -214,11 +248,11 @@
             fb.classList.remove('hidden');
 
             if (index === idTarget) {
-                fb.innerHTML = `<div class="text-emerald-400 font-semibold">Correct! It was ${bands[index].name}</div>`;
+                fb.innerHTML = `<div class="text-emerald-400 font-semibold">Correct! It was ${currentBands[index].name}</div>`;
                 fb.style.background = 'rgba(16,185,129,0.1)';
                 fb.style.border = '1px solid #22c55e';
             } else {
-                fb.innerHTML = `<div class="text-rose-400 font-semibold">Wrong. It was ${bands[idTarget].name}</div>`;
+                fb.innerHTML = `<div class="text-rose-400 font-semibold">Wrong. It was ${currentBands[idTarget].name}</div>`;
                 fb.style.background = 'rgba(244,63,94,0.1)';
                 fb.style.border = '1px solid #f43f5e';
             }
@@ -233,7 +267,7 @@
             const container = document.getElementById('sliders');
             container.innerHTML = '';
 
-            bands.forEach((band, i) => {
+            allBands.forEach((band, i) => {
                 const div = document.createElement('div');
                 div.className = 'flex items-center gap-x-4';
                 div.innerHTML = `
@@ -251,8 +285,8 @@
         }
 
         function randomizeTarget() {
-            matchTarget = bands.map(() => (Math.random() * 16 - 8).toFixed(1) * 1);
-            userGains = new Array(bands.length).fill(0);
+            matchTarget = allBands.map(() => (Math.random() * 16 - 8).toFixed(1) * 1);
+            userGains = new Array(allBands.length).fill(0);
 
             const inputs = document.querySelectorAll('#sliders input');
             inputs.forEach((input, i) => {
@@ -282,10 +316,10 @@
             }
 
             let diff = 0;
-            for (let i = 0; i < bands.length; i++) {
+            for (let i = 0; i < allBands.length; i++) {
                 diff += Math.abs(matchTarget[i] - userGains[i]);
             }
-            const accuracy = Math.max(0, Math.round(100 - (diff / bands.length) * 6));
+            const accuracy = Math.max(0, Math.round(100 - (diff / allBands.length) * 6));
 
             const result = document.getElementById('match-result');
             result.classList.remove('hidden');
@@ -299,12 +333,15 @@
             createGuessButtons();
             createSliders();
 
+            // Default to few bands
+            document.getElementById('btn-few').classList.add('bg-emerald-500', 'text-white');
+
             // Demo target
             setTimeout(() => {
-                matchTarget = new Array(bands.length).fill(0).map(() => (Math.random() * 12 - 6));
+                matchTarget = new Array(allBands.length).fill(0).map(() => (Math.random() * 12 - 6));
             }, 1000);
 
-            console.log('%c[EQ Ear Trainer] 14-band version loaded', 'color:#22c55e');
+            console.log('%c[EQ Ear Trainer] Toggle between few/many bands added', 'color:#22c55e');
         }
 
         window.onload = initializeApp;
