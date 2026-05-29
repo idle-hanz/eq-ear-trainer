@@ -239,6 +239,9 @@
                 document.getElementById('btn-few').classList.add('text-zinc-300', 'hover:bg-zinc-700');
             }
 
+            idTarget = null;                    // ← FIX: Clear any active target
+            document.getElementById('id-feedback').classList.add('hidden');
+
             createGuessButtons();
             createSliders();
             matchTarget = [];
@@ -275,6 +278,8 @@
         }
 
         function guessFrequency(index, btn) {
+            if (idTarget === null) return;
+
             const fb = document.getElementById('id-feedback');
             fb.classList.remove('hidden');
 
@@ -384,7 +389,6 @@
                     startIDRound();
                 }
 
-                // Number keys 1-9 for guessing
                 const num = parseInt(e.key);
                 if (!isNaN(num) && num >= 1 && num <= currentBands.length) {
                     const buttons = document.querySelectorAll('#guess-buttons button');
@@ -400,10 +404,9 @@
             createSliders();
             setupKeyboard();
 
-            // Default to few bands
             document.getElementById('btn-few').classList.add('bg-emerald-500', 'text-white');
 
-            console.log('%c[EQ Ear Trainer] Streak, accuracy & keyboard shortcuts added', 'color:#22c55e');
+            console.log('%c[EQ Ear Trainer] Feedback bug fixed + improvements added', 'color:#22c55e');
         }
 
         window.onload = initializeApp;
