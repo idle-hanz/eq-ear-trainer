@@ -41,7 +41,6 @@
                 </div>
 
                 <div class="flex items-center gap-x-3">
-                    <!-- Toggle -->
                     <div class="flex items-center bg-zinc-800 rounded-3xl p-1 text-xs">
                         <button onclick="setBandMode('few')" id="btn-few"
                                 class="px-4 py-1.5 rounded-[20px] bg-emerald-500 text-white font-medium">Few Bands</button>
@@ -55,7 +54,6 @@
                 </div>
             </div>
 
-            <!-- Stats -->
             <div class="flex items-center gap-x-6 mb-5 text-sm">
                 <div class="flex items-center gap-x-2">
                     <span class="text-emerald-400 font-mono text-xl" id="id-streak">0</span>
@@ -136,7 +134,6 @@
         let idCorrect = 0;
         let idTotal = 0;
 
-        // FEW BANDS - like the very first version (spans entire spectrum)
         const fewBands = [
             { name: "Sub Bass", freq: 40, color: "#ef4444" },
             { name: "Bass", freq: 120, color: "#f97316" },
@@ -147,7 +144,6 @@
             { name: "Highs", freq: 8000, color: "#ec4899" }
         ];
 
-        // MANY BANDS - like the last version (precise frequencies)
         const manyBands = [
             { name: "80 Hz", freq: 80, color: "#ef4444" },
             { name: "100 Hz", freq: 100, color: "#f97316" },
@@ -166,8 +162,8 @@
         ];
 
         let currentBands = fewBands;
+        let currentTargetBand = null;   // ← Store the actual band object
 
-        let idTarget = null;
         let matchTarget = [];
         let userGains = [];
 
@@ -239,7 +235,7 @@
                 document.getElementById('btn-few').classList.add('text-zinc-300', 'hover:bg-zinc-700');
             }
 
-            idTarget = null;                    // ← FIX: Clear any active target
+            currentTargetBand = null;
             document.getElementById('id-feedback').classList.add('hidden');
 
             createGuessButtons();
@@ -265,30 +261,32 @@
                         </div>
                     </div>
                 `;
-                btn.onclick = () => guessFrequency(i, btn);
+                btn.onclick = () => guessFrequency(band, btn);   // ← Pass the actual band
                 container.appendChild(btn);
             });
         }
 
         function startIDRound() {
-            idTarget = Math.floor(Math.random() * currentBands.length);
+            const randomIndex = Math.floor(Math.random() * currentBands.length);
+            currentTargetBand = currentBands[randomIndex];     // ← Store the actual band
+
             const gains = new Array(currentBands.length).fill(0);
-            gains[idTarget] = 10 + Math.random() * 6;
+            gains[randomIndex] = 10 + Math.random() * 6;
             playWithEQ(gains);
         }
 
-        function guessFrequency(index, btn) {
-            if (idTarget === null) return;
+        function guessFrequency(clickedBand, btn) {
+            if (!currentTargetBand) return;
 
             const fb = document.getElementById('id-feedback');
             fb.classList.remove('hidden');
 
             idTotal++;
 
-            if (index === idTarget) {
+            if (clickedBand.freq === currentTargetBand.freq) {
                 idCorrect++;
                 idStreak++;
-                fb.innerHTML = `<div class="text-emerald-400 font-semibold">Correct! It was ${currentBands[index].name}</div>`;
+                fb.innerHTML = `<div class="text-emerald-400 font-semibold">Correct! It was ${currentTargetBand.name}</div>`;
                 fb.style.background = 'rgba(16,185,129,0.1)';
                 fb.style.border = '1px solid #22c55e';
 
@@ -297,14 +295,14 @@
             } else {
                 idStreak = 0;
                 document.getElementById('id-streak').textContent = '0';
-                fb.innerHTML = `<div class="text-rose-400 font-semibold">Wrong. It was ${currentBands[idTarget].name}</div>`;
+                fb.innerHTML = `<div class="text-rose-400 font-semibold">Wrong. It was ${currentTargetBand.name}</div>`;
                 fb.style.background = 'rgba(244,63,94,0.1)';
                 fb.style.border = '1px solid #f43f5e';
             }
 
             setTimeout(() => {
                 fb.classList.add('hidden');
-                idTarget = null;
+                currentTargetBand = null;
             }, 1800);
         }
 
@@ -392,9 +390,7 @@
                 const num = parseInt(e.key);
                 if (!isNaN(num) && num >= 1 && num <= currentBands.length) {
                     const buttons = document.querySelectorAll('#guess-buttons button');
-                    if (buttons[num - 1]) {
-                        buttons[num - 1].click();
-                    }
+                    if (buttons[num - 1]) buttons[num - 1].click();
                 }
             });
         }
@@ -406,7 +402,7 @@
 
             document.getElementById('btn-few').classList.add('bg-emerald-500', 'text-white');
 
-            console.log('%c[EQ Ear Trainer] Feedback bug fixed + improvements added', 'color:#22c55e');
+            console.log('%c[EQ Ear Trainer] Clean & simple feedback system implemented', 'color:#22c55e');
         }
 
         window.onload = initializeApp;
