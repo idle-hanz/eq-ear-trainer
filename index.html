@@ -162,7 +162,7 @@
         ];
 
         let currentBands = fewBands;
-        let currentTargetBand = null;   // ← Store the actual band object
+        let currentTargetBand = null;
 
         let matchTarget = [];
         let userGains = [];
@@ -261,14 +261,14 @@
                         </div>
                     </div>
                 `;
-                btn.onclick = () => guessFrequency(band, btn);   // ← Pass the actual band
+                btn.onclick = () => guessFrequency(band, btn);
                 container.appendChild(btn);
             });
         }
 
         function startIDRound() {
             const randomIndex = Math.floor(Math.random() * currentBands.length);
-            currentTargetBand = currentBands[randomIndex];     // ← Store the actual band
+            currentTargetBand = currentBands[randomIndex];
 
             const gains = new Array(currentBands.length).fill(0);
             gains[randomIndex] = 10 + Math.random() * 6;
@@ -276,14 +276,12 @@
         }
 
         function guessFrequency(clickedBand, btn) {
-            if (!currentTargetBand) return;
-
             const fb = document.getElementById('id-feedback');
             fb.classList.remove('hidden');
 
             idTotal++;
 
-            if (clickedBand.freq === currentTargetBand.freq) {
+            if (currentTargetBand && clickedBand.freq === currentTargetBand.freq) {
                 idCorrect++;
                 idStreak++;
                 fb.innerHTML = `<div class="text-emerald-400 font-semibold">Correct! It was ${currentTargetBand.name}</div>`;
@@ -292,12 +290,17 @@
 
                 document.getElementById('id-streak').textContent = idStreak;
                 updateAccuracy();
-            } else {
+            } else if (currentTargetBand) {
                 idStreak = 0;
                 document.getElementById('id-streak').textContent = '0';
                 fb.innerHTML = `<div class="text-rose-400 font-semibold">Wrong. It was ${currentTargetBand.name}</div>`;
                 fb.style.background = 'rgba(244,63,94,0.1)';
                 fb.style.border = '1px solid #f43f5e';
+            } else {
+                // Fallback if something went wrong
+                fb.innerHTML = `<div class="text-amber-400 font-semibold">Feedback not available. Try playing again.</div>`;
+                fb.style.background = 'rgba(245,158,11,0.1)';
+                fb.style.border = '1px solid #f59e0b';
             }
 
             setTimeout(() => {
@@ -402,7 +405,7 @@
 
             document.getElementById('btn-few').classList.add('bg-emerald-500', 'text-white');
 
-            console.log('%c[EQ Ear Trainer] Clean & simple feedback system implemented', 'color:#22c55e');
+            console.log('%c[EQ Ear Trainer] Final robust feedback system', 'color:#22c55e');
         }
 
         window.onload = initializeApp;
