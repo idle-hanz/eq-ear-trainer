@@ -163,6 +163,7 @@
 
         let currentBands = fewBands;
         let currentTargetBand = null;
+        let feedbackTimeout = null;
 
         let matchTarget = [];
         let userGains = [];
@@ -236,6 +237,7 @@
             }
 
             currentTargetBand = null;
+            if (feedbackTimeout) clearTimeout(feedbackTimeout);
             document.getElementById('id-feedback').classList.add('hidden');
 
             createGuessButtons();
@@ -267,6 +269,10 @@
         }
 
         function startIDRound() {
+            // Clear any previous state
+            if (feedbackTimeout) clearTimeout(feedbackTimeout);
+            document.getElementById('id-feedback').classList.add('hidden');
+
             const randomIndex = Math.floor(Math.random() * currentBands.length);
             currentTargetBand = currentBands[randomIndex];
 
@@ -297,13 +303,12 @@
                 fb.style.background = 'rgba(244,63,94,0.1)';
                 fb.style.border = '1px solid #f43f5e';
             } else {
-                // Fallback if something went wrong
-                fb.innerHTML = `<div class="text-amber-400 font-semibold">Feedback not available. Try playing again.</div>`;
+                fb.innerHTML = `<div class="text-amber-400 font-semibold">Please click PLAY first</div>`;
                 fb.style.background = 'rgba(245,158,11,0.1)';
                 fb.style.border = '1px solid #f59e0b';
             }
 
-            setTimeout(() => {
+            feedbackTimeout = setTimeout(() => {
                 fb.classList.add('hidden');
                 currentTargetBand = null;
             }, 1800);
@@ -405,7 +410,7 @@
 
             document.getElementById('btn-few').classList.add('bg-emerald-500', 'text-white');
 
-            console.log('%c[EQ Ear Trainer] Final robust feedback system', 'color:#22c55e');
+            console.log('%c[EQ Ear Trainer] Final clean version with reliable feedback', 'color:#22c55e');
         }
 
         window.onload = initializeApp;
