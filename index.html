@@ -40,6 +40,14 @@
                     <div class="text-3xl font-semibold">Which frequency was boosted?</div>
                 </div>
 
+                <!-- Game 1 Mode Selector -->
+                <div class="flex items-center bg-zinc-800 rounded-3xl p-1 text-sm mr-3">
+                    <button onclick="setIDGameMode('practice')" id="id-mode-practice"
+                            class="px-4 py-1.5 rounded-[20px] bg-emerald-500 text-white font-medium">Practice</button>
+                    <button onclick="setIDGameMode('test')" id="id-mode-test"
+                            class="px-4 py-1.5 rounded-[20px] text-zinc-300 hover:bg-zinc-700">Test (10 rounds)</button>
+                </div>
+
                 <div class="flex items-center gap-x-3">
                     <div class="flex items-center bg-zinc-800 rounded-3xl p-1 text-xs">
                         <button onclick="setBandMode('few')" id="btn-few"
@@ -48,8 +56,8 @@
                                 class="px-4 py-1.5 rounded-[20px] text-zinc-300 hover:bg-zinc-700">Many Bands</button>
                     </div>
 
-                    <button onclick="startIDRound()" class="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-3xl flex items-center gap-x-2">
-                        <i class="fa-solid fa-play"></i> <span>PLAY</span>
+                    <button id="id-play-btn" onclick="startIDRound()" class="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-3xl flex items-center gap-x-2">
+                        <i class="fa-solid fa-play"></i> <span id="id-play-text">PLAY</span>
                     </button>
                 </div>
             </div>
@@ -73,6 +81,8 @@
                 <div class="font-mono w-12 text-emerald-400" id="id-masking-val">22%</div>
                 <div class="text-[10px] text-zinc-500 max-w-[180px]">Low = more isolated band (easier to pick out). Raise for more surrounding noise as you improve.</div>
             </div>
+
+            <div id="id-test-progress" class="hidden text-sm text-violet-400 mb-3 font-medium"></div>
 
             <div id="guess-buttons" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-3 mb-6">
                 <!-- Populated by JS -->
@@ -215,6 +225,12 @@
         let idStreak = 0;
         let idCorrect = 0;
         let idTotal = 0;
+
+        // Game 1 modes
+        let idGameMode = 'practice';   // 'practice' | 'test'
+        let testCurrentRound = 0;
+        let testCorrect = 0;
+        const testTotalRounds = 10;
 
         // For future / matching persistence
         let bestMatchAccuracy = 0;
@@ -1086,6 +1102,16 @@ You are working on the clean track. The "Play Problem Version" has a hidden <str
 
             // Keep the masking slider display consistent
             updateMaskingDisplay();
+
+            // If a test is running, reset it when changing band sets
+            if (idGameMode === 'test' && testCurrentRound > 0) {
+                testCurrentRound = 0;
+                testCorrect = 0;
+                currentTargetBand = null;
+                document.getElementById('id-feedback').classList.add('hidden');
+                const progressEl = document.getElementById('id-test-progress');
+                if (progressEl) progressEl.classList.add('hidden');
+            }
         }
 
         function createGuessButtons() {
@@ -1106,7 +1132,7 @@ You are working on the clean track. The "Play Problem Version" has a hidden <str
                         </div>
                     </div>
                 `;
-                btn.onclick = () => guessFrequency(band, btn);
+                btn.onclick = () => handleBandClick(band, btn);
                 container.appendChild(btn);
             });
         }
@@ -1116,16 +1142,30 @@ You are working on the clean track. The "Play Problem Version" has a hidden <str
             if (feedbackTimeout) clearTimeout(feedbackTimeout);
             document.getElementById('id-feedback').classList.add('hidden');
 
-            const randomIndex = Math.floor(Math.random() * currentBands.length);
-            currentTargetBand = currentBands[randomIndex];
+            if (idGameMode === 'practice') {
+                // Practice mode: just play one random band for listening practice
+                const randomIndex = Math.floor(Math.random() * currentBands.length);
+                currentTargetBand = currentBands[randomIndex];
 
-            // Use improved isolation mode instead of broad noise + single boost.
-            // This gives a much clearer "pick out this band" experience.
-            // maskingLevel: 0 = almost pure isolated band (narrow bandpass), higher = more surrounding broadband noise.
-            // Default 0.25 gives good isolation while still having some context (you can raise it manually).
-            const maskingSlider = document.getElementById('id-masking');
-            const maskingLevel = maskingSlider ? parseFloat(maskingSlider.value) : 0.25;
-            playIsolatedBand(randomIndex, maskingLevel);
+                const maskingSlider = document.getElementById('id-masking');
+                const maskingLevel = maskingSlider ? parseFloat(maskingSlider.value) : 0.25;
+                playIsolatedBand(randomIndex, maskingLevel);
+            } else {
+                // Test mode: structured 10-round quiz
+                if (testCurrentRound === 0) {
+                    testCurrentRound = 1;
+                    testCorrect = 0;
+                }
+
+                const randomIndex = Math.floor(Math.random() * currentBands.length);
+                currentTargetBand = currentBands[randomIndex];
+
+                const maskingSlider = document.getElementById('id-masking');
+                const maskingLevel = maskingSlider ? parseFloat(maskingSlider.value) : 0.25;
+                playIsolatedBand(randomIndex, maskingLevel);
+
+                updateTestProgress();
+            }
         }
 
         function guessFrequency(clickedBand, btn) {
@@ -1136,7 +1176,9 @@ You are working on the clean track. The "Play Problem Version" has a hidden <str
 
             const rangeText = currentTargetBand && currentTargetBand.range ? ` (${currentTargetBand.range})` : '';
 
+            let wasCorrect = false;
             if (currentTargetBand && clickedBand.freq === currentTargetBand.freq) {
+                wasCorrect = true;
                 idCorrect++;
                 idStreak++;
                 fb.innerHTML = `<div class="text-emerald-400 font-semibold">Correct! It was ${currentTargetBand.name}${rangeText}</div>`;
@@ -1159,10 +1201,29 @@ You are working on the clean track. The "Play Problem Version" has a hidden <str
                 fb.style.border = '1px solid #f59e0b';
             }
 
-            feedbackTimeout = setTimeout(() => {
-                fb.classList.add('hidden');
-                currentTargetBand = null;
-            }, 1800);
+            if (idGameMode === 'test' && currentTargetBand) {
+                if (wasCorrect) testCorrect++;
+                updateTestProgress();
+
+                // Auto-advance after short delay
+                setTimeout(() => {
+                    fb.classList.add('hidden');
+                    currentTargetBand = null;
+
+                    if (testCurrentRound < testTotalRounds) {
+                        testCurrentRound++;
+                        startIDRound();
+                    } else {
+                        showTestResults();
+                    }
+                }, 1350);
+            } else {
+                // Practice mode - clear after delay
+                feedbackTimeout = setTimeout(() => {
+                    fb.classList.add('hidden');
+                    currentTargetBand = null;
+                }, 1800);
+            }
         }
 
         function updateAccuracy() {
@@ -1178,6 +1239,112 @@ You are working on the clean track. The "Play Problem Version" has a hidden <str
             if (!slider || !valEl) return;
             const pct = Math.round(parseFloat(slider.value) * 100);
             valEl.textContent = pct + '%';
+        }
+
+        function handleBandClick(band, btn) {
+            if (idGameMode === 'practice') {
+                // Free listening mode - just play the band
+                const maskingSlider = document.getElementById('id-masking');
+                const maskingLevel = maskingSlider ? parseFloat(maskingSlider.value) : 0.25;
+                playIsolatedBand(currentBands.indexOf(band), maskingLevel);
+
+                currentTargetBand = null;
+                document.getElementById('id-feedback').classList.add('hidden');
+
+                // Brief visual pulse on the button
+                const originalBorder = btn.style.border;
+                btn.style.border = '1px solid #22c55e';
+                setTimeout(() => {
+                    btn.style.border = originalBorder || '1px solid #3f3f46';
+                }, 350);
+            } else {
+                // Test mode - clicking counts as a guess
+                guessFrequency(band, btn);
+            }
+        }
+
+        function setIDGameMode(mode) {
+            if (idGameMode === mode) return;
+            idGameMode = mode;
+
+            const practiceBtn = document.getElementById('id-mode-practice');
+            const testBtn = document.getElementById('id-mode-test');
+            const playText = document.getElementById('id-play-text');
+            const progressEl = document.getElementById('id-test-progress');
+
+            if (mode === 'practice') {
+                if (practiceBtn) practiceBtn.className = 'px-4 py-1.5 rounded-[20px] bg-emerald-500 text-white font-medium';
+                if (testBtn) testBtn.className = 'px-4 py-1.5 rounded-[20px] text-zinc-300 hover:bg-zinc-700';
+                if (playText) playText.textContent = 'PLAY RANDOM';
+                if (progressEl) progressEl.classList.add('hidden');
+
+                // Clear any active test
+                testCurrentRound = 0;
+                testCorrect = 0;
+                currentTargetBand = null;
+                document.getElementById('id-feedback').classList.add('hidden');
+            } else {
+                if (practiceBtn) practiceBtn.className = 'px-4 py-1.5 rounded-[20px] text-zinc-300 hover:bg-zinc-700';
+                if (testBtn) testBtn.className = 'px-4 py-1.5 rounded-[20px] bg-violet-500 text-white font-medium';
+                if (playText) playText.textContent = 'START 10-ROUND TEST';
+                if (progressEl) progressEl.classList.add('hidden');
+
+                // Reset test state
+                testCurrentRound = 0;
+                testCorrect = 0;
+                currentTargetBand = null;
+                document.getElementById('id-feedback').classList.add('hidden');
+            }
+        }
+
+        function updateTestProgress() {
+            const el = document.getElementById('id-test-progress');
+            if (!el || idGameMode !== 'test' || testCurrentRound === 0) {
+                if (el) el.classList.add('hidden');
+                return;
+            }
+            el.classList.remove('hidden');
+            el.textContent = `Test Mode • Round ${testCurrentRound} / ${testTotalRounds} • ${testCorrect} correct`;
+        }
+
+        function showTestResults() {
+            const fb = document.getElementById('id-feedback');
+            const progressEl = document.getElementById('id-test-progress');
+            if (progressEl) progressEl.classList.add('hidden');
+
+            fb.classList.remove('hidden');
+
+            const percent = Math.round((testCorrect / testTotalRounds) * 100);
+            let message = '';
+            if (percent === 100) message = 'Perfect! Excellent ear training.';
+            else if (percent >= 80) message = 'Great work!';
+            else if (percent >= 60) message = 'Solid progress.';
+            else message = 'Keep practicing — the ranges will get more familiar.';
+
+            fb.innerHTML = `
+                <div class="text-center">
+                    <div class="text-5xl font-display font-semibold text-emerald-400">${testCorrect} / ${testTotalRounds}</div>
+                    <div class="text-2xl mt-1">${percent}%</div>
+                    <div class="text-sm text-zinc-400 mt-1">${message}</div>
+
+                    <div class="mt-4 flex gap-x-3 justify-center">
+                        <button onclick="restartTest()" class="px-5 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium rounded-2xl">Play Again</button>
+                        <button onclick="setIDGameMode('practice')" class="px-5 py-2 border border-zinc-700 hover:bg-zinc-800 text-sm rounded-2xl">Back to Practice</button>
+                    </div>
+                </div>
+            `;
+
+            currentTargetBand = null;
+            testCurrentRound = 0;
+        }
+
+        function restartTest() {
+            const fb = document.getElementById('id-feedback');
+            fb.classList.add('hidden');
+            testCurrentRound = 0;
+            testCorrect = 0;
+            document.getElementById('id-test-progress').classList.add('hidden');
+            startIDRound();
         }
 
         // Persistence for ID game stats (was missing despite README claim)
@@ -1283,6 +1450,7 @@ You are working on the clean track. The "Play Problem Version" has a hidden <str
 
         function initializeApp() {
             createGuessButtons();
+            setIDGameMode('practice');  // default to practice / free listening
             createSliders();
             setupKeyboard();
 
