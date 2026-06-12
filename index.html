@@ -3,40 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EQ Ear Trainer</title>
+    <title>EQ Ear Trainer - Idle Hanz</title>
+    <meta name="description" content="Interactive EQ ear training for music producers and mix engineers — by Idle Hanz.">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="ear-trainer.css">
     <style>
-        body { font-family: 'Inter', system_ui, sans-serif; }
-        .font-display { font-family: 'Space Grotesk', 'Inter', sans-serif; font-weight: 600; }
-        .eq-slider { writing-mode: vertical-lr; direction: rtl; height: 160px; accent-color: #22c55e; }
+        .eq-slider { writing-mode: vertical-lr; direction: rtl; height: 160px; accent-color: #c9a36e; }
         .band-bar { transition: height 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
     </style>
 </head>
-<body class="bg-zinc-950 text-zinc-200">
+<body class="ear-trainer-page bg-zinc-950 text-zinc-200">
     <nav class="border-b border-zinc-800 bg-zinc-950/90 backdrop-blur sticky top-0 z-50">
         <div class="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-x-3">
-                <div class="w-9 h-9 bg-emerald-500 rounded-2xl flex items-center justify-center">
-                    <i class="fa-solid fa-headset text-white"></i>
-                </div>
-                <span class="font-display text-2xl font-semibold tracking-tighter">EQ Ear Trainer</span>
+            <div class="flex items-center gap-x-4">
+                <a href="https://idlehanz.com" class="et-nav-brand">Idle Hanz</a>
+                <span class="text-zinc-500 hidden sm:inline">|</span>
+                <span class="font-display text-lg text-zinc-300 hidden sm:inline">EQ Ear Trainer</span>
             </div>
-            <a href="https://github.com/idle-hanz/eq-ear-trainer" target="_blank" class="text-sm text-zinc-400 hover:text-white">GitHub</a>
+            <div class="flex items-center gap-x-4">
+                <a href="https://idlehanz.com/tools/" class="et-nav-link">Studio Tools</a>
+                <a href="https://github.com/idle-hanz/eq-ear-trainer" target="_blank" rel="noopener" class="et-nav-link">GitHub</a>
+            </div>
         </div>
     </nav>
 
     <div class="max-w-4xl mx-auto px-6 pt-12 pb-8 text-center">
-        <h1 class="text-6xl font-display font-semibold tracking-tighter mb-4">Train your ears.<br><span class="text-emerald-400">Master EQ.</span></h1>
+        <h1 class="text-6xl font-display font-semibold tracking-tighter mb-4">Train your ears.<br><span class="et-hero-accent">Master EQ.</span></h1>
         <p class="text-xl text-zinc-400">Interactive ear training for audio equalization using real Web Audio API.</p>
     </div>
 
     <!-- Frequency ID -->
     <div class="max-w-5xl mx-auto px-6 pb-16">
-        <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 et-game-panel">
             <div class="flex items-center justify-between mb-6">
                 <div>
-                    <div class="text-emerald-400 text-sm font-medium">FREQUENCY IDENTIFICATION</div>
+                    <div class="et-section-label">Frequency Identification</div>
                     <div class="text-3xl font-semibold">Which frequency was boosted?</div>
                 </div>
 
@@ -94,10 +96,10 @@
 
     <!-- Corrective EQ - Production Focused -->
     <div class="max-w-5xl mx-auto px-6 pb-20">
-        <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-8 et-game-panel">
             <div class="flex items-center justify-between mb-6">
                 <div>
-                    <div class="text-violet-400 text-sm font-medium">CORRECTIVE EQ — PRODUCTION TRAINING</div>
+                    <div class="et-section-label">Corrective EQ — Production Training</div>
                     <div class="text-3xl font-semibold">Load real audio &amp; fix the problem by ear</div>
                     <div class="text-xs text-zinc-400 mt-1">Simple mode: only <strong>one band</strong> is affected (3dB or 6dB, wide or narrow Q)</div>
                     <div id="best-match" class="text-xs text-zinc-500"></div>
@@ -685,14 +687,14 @@
                 label.textContent = 'Correct (fix affected)';
                 label.className = 'text-sm font-medium text-emerald-400';
                 if (panel) {
-                    panel.style.borderColor = '#10b981'; // emerald
+                    panel.style.borderColor = '#c9a36e';
                 }
             } else {
                 checkbox.checked = true;
                 label.textContent = 'Match (apply to clean)';
                 label.className = 'text-sm font-medium text-violet-400';
                 if (panel) {
-                    panel.style.borderColor = '#8b5cf6'; // violet
+                    panel.style.borderColor = '#9a7b5a';
                 }
             }
 
@@ -1031,7 +1033,7 @@ You are working on the clean track. The "Play Problem Version" has a hidden <str
             const minF = 20, maxF = 20000;
             const logMin = Math.log10(minF), logMax = Math.log10(maxF);
 
-            ctx.strokeStyle = '#22c55e';
+            ctx.strokeStyle = '#c9a36e';
             ctx.lineWidth = 2;
             ctx.beginPath();
 
@@ -1253,7 +1255,7 @@ You are working on the clean track. The "Play Problem Version" has a hidden <str
 
                 // Brief visual pulse on the button
                 const originalBorder = btn.style.border;
-                btn.style.border = '1px solid #22c55e';
+                btn.style.border = '1px solid #c9a36e';
                 setTimeout(() => {
                     btn.style.border = originalBorder || '1px solid #3f3f46';
                 }, 350);
@@ -1495,10 +1497,14 @@ You are working on the clean track. The "Play Problem Version" has a hidden <str
                 handleFileSelect(e.dataTransfer.files);
             };
 
-            console.log('%c[EQ Ear Trainer] Real audio + corrective EQ mode active', 'color:#22c55e');
+            console.log('%c[EQ Ear Trainer] Real audio + corrective EQ mode active', 'color:#c9a36e');
         }
 
         window.onload = initializeApp;
     </script>
+
+    <footer class="et-footer">
+        <p>© Idle Hanz • <a href="https://idlehanz.com">idlehanz.com</a> • <a href="https://idlehanz.com/tools/">Studio Tools</a></p>
+    </footer>
 </body>
 </html>
